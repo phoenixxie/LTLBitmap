@@ -18,12 +18,6 @@
         <properties/>
         <border type="none" title="States"/>
         <children>
-          <component id="fac8" class="javax.swing.JList" binding="listStates">
-            <constraints border-constraint="Center"/>
-            <properties>
-              <model/>
-            </properties>
-          </component>
           <grid id="613a7" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints border-constraint="South"/>
@@ -48,6 +42,25 @@
               </component>
             </children>
           </grid>
+          <scrollpane id="4b10a" binding="jscrollPaneStates">
+            <constraints border-constraint="Center"/>
+            <properties>
+              <horizontalScrollBarPolicy value="31"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="fac8" class="javax.swing.JList" binding="jlistStates">
+                <constraints/>
+                <properties>
+                  <model/>
+                  <selectionMode value="0"/>
+                </properties>
+                <clientProperties>
+                  <html.disable class="java.lang.Boolean" value="true"/>
+                </clientProperties>
+              </component>
+            </children>
+          </scrollpane>
         </children>
       </grid>
       <grid id="f61f4" layout-manager="BorderLayout" hgap="0" vgap="0">
@@ -57,10 +70,6 @@
         <properties/>
         <border type="none" title="LTL Formulaes"/>
         <children>
-          <component id="f099e" class="javax.swing.JList" binding="listFormulas">
-            <constraints border-constraint="Center"/>
-            <properties/>
-          </component>
           <grid id="15602" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints border-constraint="South"/>
@@ -85,6 +94,19 @@
               </component>
             </children>
           </grid>
+          <scrollpane id="c83b5" binding="jscrollPaneFormulaes">
+            <constraints border-constraint="Center"/>
+            <properties>
+              <horizontalScrollBarPolicy value="31"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="f099e" class="javax.swing.JList" binding="jlistFormulas">
+                <constraints/>
+                <properties/>
+              </component>
+            </children>
+          </scrollpane>
         </children>
       </grid>
       <grid id="cab04" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -150,8 +172,11 @@
               <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Generate &amp; Check"/>
+              <text value="Generate and Check"/>
             </properties>
+            <clientProperties>
+              <html.disable class="java.lang.Boolean" value="false"/>
+            </clientProperties>
           </component>
         </children>
       </grid>

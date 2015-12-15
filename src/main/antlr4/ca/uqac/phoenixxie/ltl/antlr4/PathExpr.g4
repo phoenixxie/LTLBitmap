@@ -30,5 +30,5 @@ UNTIL: 'U';
 RELEASE: 'R';
 WEAKLYUNTIL: 'W';
 
-STATE: [a-zA-Z]+[a-zA-Z0-9]*;
+STATE: 's'[A-Z0-9]+;
 WS  :   [ \t\r\n] -> channel(HIDDEN);

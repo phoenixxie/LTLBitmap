@@ -1,5 +1,7 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
+import ca.uqac.phoenixxie.ltl.parser.LTLParser;
+
 import javax.swing.*;
 import java.awt.event.*;
 
@@ -9,6 +11,13 @@ public class FormulaAddDialog extends JDialog {
     private JButton buttonCancel;
     private JTextField textFieldFormula;
     private JLabel labelMsg;
+
+    public interface OnResultListener {
+        void onResult(LTLParser.PathResult result);
+    }
+
+    private OnResultListener listener = null;
+
 
     public FormulaAddDialog() {
         setTitle("Add a LTL formulae...");
@@ -28,7 +37,6 @@ public class FormulaAddDialog extends JDialog {
             }
         });
 
-// call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -36,7 +44,6 @@ public class FormulaAddDialog extends JDialog {
             }
         });
 
-// call onCancel() on ESCAPE
         contentPane.registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onCancel();
@@ -44,13 +51,26 @@ public class FormulaAddDialog extends JDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
-    private void onOK() {
-// add your code here
-        dispose();
+    public void setResultListener(OnResultListener listener) {
+        this.listener = listener;
     }
 
+    private void onOK() {
+        String text = textFieldFormula.getText();
+        LTLParser.PathResult result = LTLParser.parsePath(text);
+        if (result.isSuccess()) {
+            if (this.listener != null) {
+                this.listener.onResult(result);
+            }
+            dispose();
+        } else {
+            String msg = result.getErrorMsg();
+            labelMsg.setText("Error: " + msg);
+        }
+    }
+
+
     private void onCancel() {
-// add your code here if necessary
         dispose();
     }
 }

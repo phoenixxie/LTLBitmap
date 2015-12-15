@@ -28,7 +28,7 @@ AND: '&&';
 OR: '||';
 NOT: '!';
 
-VAR: [a-zA-Z]+[a-zA-Z0-9]*;
+VAR: 'p';
 NUMBER: MINUS? [0-9]+;
 MINUS: '-';
 

@@ -1,5 +1,7 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
+import ca.uqac.phoenixxie.ltl.parser.LTLParser;
+
 import javax.swing.*;
 import java.awt.event.*;
 
@@ -9,6 +11,12 @@ public class StateAddDialog extends JDialog {
     private JButton buttonCancel;
     private JTextField textFieldState;
     private JLabel labelMsg;
+
+    public interface OnResultListener {
+        void onResult(LTLParser.StateResult result);
+    }
+
+    private OnResultListener listener = null;
 
     public StateAddDialog() {
         setContentPane(contentPane);
@@ -44,13 +52,25 @@ public class StateAddDialog extends JDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
+    public void setResultListener(OnResultListener listener) {
+        this.listener = listener;
+    }
+
     private void onOK() {
-// add your code here
-        dispose();
+        String text = textFieldState.getText();
+        LTLParser.StateResult result = LTLParser.parseState(text);
+        if (result.isSuccess()) {
+            if (this.listener != null) {
+                this.listener.onResult(result);
+            }
+            dispose();
+        } else {
+            String msg = result.getErrorMsg();
+            labelMsg.setText("Error: " + msg);
+        }
     }
 
     private void onCancel() {
-// add your code here if necessary
         dispose();
     }
 
