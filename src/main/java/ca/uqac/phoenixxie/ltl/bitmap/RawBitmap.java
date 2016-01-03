@@ -27,7 +27,13 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         ++size;
     }
 
-    public int getSize() {
+    public void addMany(boolean bit, int count) {
+        for (int i = 0; i < count; ++i) {
+            add(bit);
+        }
+    }
+
+    public int size() {
         return size;
     }
 
@@ -66,11 +72,76 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         --size;
     }
 
-    public Bitmap.BitmapIterator fromStart() {
-        return null;
+    public Bitmap.BitmapIterator begin() {
+        return new Iterator();
     }
 
-    public Bitmap.BitmapIterator fromEnd() {
-        return null;
+    public Bitmap.BitmapIterator end() {
+        return new Iterator(size);
+    }
+
+    class Iterator implements Bitmap.BitmapIterator {
+        private int index;
+
+        public Iterator() {
+            this(0);
+        }
+
+        public Iterator(int index) {
+            this.index = index;
+        }
+
+        public int index() {
+            return index;
+        }
+
+        public void moveForward(int offset) {
+            assert(index + offset <= size);
+            index += offset;
+        }
+
+        public Bitmap.BitmapIterator find0() {
+            for (int i = index; i < size; ++i) {
+                if (bitset.get(i) == false) {
+                    return new Iterator(i);
+                }
+            }
+            return null;
+        }
+
+        public Bitmap.BitmapIterator rfind0() {
+            for (int i = index - 1; i >= 0; --i) {
+                if (bitset.get(i) == false) {
+                    return new Iterator(i);
+                }
+            }
+            return null;
+        }
+
+        public Bitmap.BitmapIterator find1() {
+            for (int i = index; i < size; ++i) {
+                if (bitset.get(i) == true) {
+                    return new Iterator(i);
+                }
+            }
+            return null;
+        }
+
+        public Bitmap.BitmapIterator rfind1() {
+            for (int i = index - 1; i >= 0; --i) {
+                if (bitset.get(i) == true) {
+                    return new Iterator(i);
+                }
+            }
+            return null;
+        }
+
+        public boolean currentBit() {
+            return bitset.get(index);
+        }
+
+        public boolean isEnd() {
+            return index == size;
+        }
     }
 }
