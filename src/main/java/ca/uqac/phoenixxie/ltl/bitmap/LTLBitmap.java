@@ -2,7 +2,7 @@ package ca.uqac.phoenixxie.ltl.bitmap;
 
 import java.security.InvalidParameterException;
 
-public class Bitmap {
+public class LTLBitmap {
     enum Type {
         RAW,
         JAVAEWAH
@@ -40,16 +40,13 @@ public class Bitmap {
 
         BitmapIterator begin();
         BitmapIterator end();
+        String toString();
     }
 
     private Type type;
     private BitmapAdapter bitmap;
 
-    public Bitmap() {
-        this(Type.RAW);
-    }
-
-    public Bitmap(Type type) {
+    public LTLBitmap(Type type) {
         this.type = type;
         this.bitmap = createAdapter(type);
     }
@@ -68,6 +65,25 @@ public class Bitmap {
         bitmap.add(bit);
     }
 
+    public void add(String in) {
+        for (char c : in.toCharArray()) {
+            if (c == '0') {
+                add(false);
+            } else if (c == '1') {
+                add(true);
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return bitmap.toString();
+    }
+
+    public void clear() {
+        this.bitmap = createAdapter(type);
+    }
+
     public int getCapacity() {
         return bitmap.getCapacity();
     }
@@ -76,32 +92,41 @@ public class Bitmap {
         bitmap.clear(bit);
     }
 
+    private void makeSameSize(LTLBitmap rightBm) {
+        int diff = bitmap.size() - rightBm.bitmap.size();
+        if (diff > 0) {
+            rightBm.bitmap.addMany(false, diff);
+        } else if (diff < 0) {
+            bitmap.addMany(false, -diff);
+        }
+        assert(bitmap.size() == rightBm.bitmap.size());
+    }
+
     public void opNot() {
         bitmap.opNot();
     }
 
-    public void opAnd(BitmapAdapter bm) {
-        bitmap.opAnd(bm);
+    public void opAnd(LTLBitmap bm) {
+        makeSameSize(bm);
+        bitmap.opAnd(bm.bitmap);
     }
 
-    public void opOr(BitmapAdapter bm) {
-        bitmap.opOr(bm);
+    public void opOr(LTLBitmap bm) {
+        makeSameSize(bm);
+        bitmap.opOr(bm.bitmap);
     }
 
-    public void opXor(BitmapAdapter bm) {
-        bitmap.opXor(bm);
-    }
-
-    public void opThen(BitmapAdapter bm) {
+    public void opThen(LTLBitmap bm) {
+        makeSameSize(bm);
         bitmap.opNot();
-        bitmap.opOr(bm);
+        bitmap.opOr(bm.bitmap);
     }
 
-    void opNext() {
+    public void opNext() {
         bitmap.opShiftLeft1Bit();
     }
 
-    void opGlobal() {
+    public void opGlobal() {
         BitmapIterator itor = bitmap.end();
         BitmapIterator itNext = itor.rfind0();
         if (itNext == null) {
@@ -114,7 +139,7 @@ public class Bitmap {
         bitmap = newBm;
     }
 
-    void opFuture() {
+    public void opFuture() {
         BitmapIterator itor = bitmap.end();
         BitmapIterator pos = itor.rfind1();
         if (pos == null) {
@@ -127,17 +152,11 @@ public class Bitmap {
         bitmap = newBm;
     }
 
-    void opUntil(Bitmap rightBm) {
+    public void opUntil(LTLBitmap rightBm) {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
         }
-        int diff = bitmap.size() - rightBm.bitmap.size();
-        if (diff > 0) {
-            rightBm.bitmap.addMany(false, diff);
-        } else if (diff < 0) {
-            bitmap.addMany(false, -diff);
-        }
-        assert(bitmap.size() == rightBm.bitmap.size());
+        makeSameSize(rightBm);
 
         BitmapIterator ita = bitmap.begin();
         BitmapIterator itb = rightBm.bitmap.begin();
@@ -194,17 +213,11 @@ public class Bitmap {
         bitmap = newBm;
     }
 
-    void opWeakUntil(Bitmap rightBm) {
+    public void opWeakUntil(LTLBitmap rightBm) {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
         }
-        int diff = bitmap.size() - rightBm.bitmap.size();
-        if (diff > 0) {
-            rightBm.bitmap.addMany(false, diff);
-        } else if (diff < 0) {
-            bitmap.addMany(false, -diff);
-        }
-        assert(bitmap.size() == rightBm.bitmap.size());
+        makeSameSize(rightBm);
 
         BitmapIterator ita = bitmap.begin();
         BitmapIterator itb = rightBm.bitmap.begin();
@@ -259,17 +272,11 @@ public class Bitmap {
         bitmap = newBm;
     }
 
-    void opRelease(Bitmap rightBm) {
+    public void opRelease(LTLBitmap rightBm) {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
         }
-        int diff = bitmap.size() - rightBm.bitmap.size();
-        if (diff > 0) {
-            rightBm.bitmap.addMany(false, diff);
-        } else if (diff < 0) {
-            bitmap.addMany(false, -diff);
-        }
-        assert(bitmap.size() == rightBm.bitmap.size());
+        makeSameSize(rightBm);
 
         BitmapIterator ita = bitmap.begin();
         BitmapIterator itb = rightBm.bitmap.begin();

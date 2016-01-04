@@ -1,10 +1,23 @@
 package ca.uqac.phoenixxie.ltl.bitmap;
 
+import java.security.InvalidParameterException;
 import java.util.BitSet;
 
-public class RawBitmap implements Bitmap.BitmapAdapter {
+public class RawBitmap implements LTLBitmap.BitmapAdapter {
     private BitSet bitset = new BitSet();
+
     private int size = 0;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < size; ++i) {
+            sb.append(bitset.get(i) ? "1" : "0");
+        }
+
+        return sb.toString();
+    }
 
     public int getCapacity() {
         return bitset.size();
@@ -16,6 +29,13 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
 
     public boolean lastBit() {
         return bitset.get(size - 1);
+    }
+
+    public boolean get(int index) {
+        if (index >= size || index < 0) {
+            throw new InvalidParameterException();
+        }
+        return bitset.get(index);
     }
 
     public void add(boolean bit) {
@@ -49,19 +69,19 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         bitset.flip(0, size);
     }
 
-    public void opAnd(Bitmap.BitmapAdapter bm) {
+    public void opAnd(LTLBitmap.BitmapAdapter bm) {
         RawBitmap right = (RawBitmap) bm;
         bitset.and(right.bitset);
         size = Math.max(size, right.size);
     }
 
-    public void opOr(Bitmap.BitmapAdapter bm) {
+    public void opOr(LTLBitmap.BitmapAdapter bm) {
         RawBitmap right = (RawBitmap) bm;
         bitset.or(right.bitset);
         size = Math.max(size, right.size);
     }
 
-    public void opXor(Bitmap.BitmapAdapter bm) {
+    public void opXor(LTLBitmap.BitmapAdapter bm) {
         RawBitmap right = (RawBitmap) bm;
         bitset.xor(right.bitset);
         size = Math.max(size, right.size);
@@ -72,15 +92,15 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         --size;
     }
 
-    public Bitmap.BitmapIterator begin() {
+    public LTLBitmap.BitmapIterator begin() {
         return new Iterator();
     }
 
-    public Bitmap.BitmapIterator end() {
+    public LTLBitmap.BitmapIterator end() {
         return new Iterator(size);
     }
 
-    class Iterator implements Bitmap.BitmapIterator {
+    class Iterator implements LTLBitmap.BitmapIterator {
         private int index;
 
         public Iterator() {
@@ -88,6 +108,9 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         }
 
         public Iterator(int index) {
+            if (index > size || index < 0) {
+                throw new InvalidParameterException();
+            }
             this.index = index;
         }
 
@@ -96,11 +119,16 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         }
 
         public void moveForward(int offset) {
-            assert(index + offset <= size);
+            if (offset < 0) {
+                throw new InvalidParameterException();
+            }
+            if (index + offset > size) {
+                throw new InvalidParameterException();
+            }
             index += offset;
         }
 
-        public Bitmap.BitmapIterator find0() {
+        public LTLBitmap.BitmapIterator find0() {
             for (int i = index; i < size; ++i) {
                 if (bitset.get(i) == false) {
                     return new Iterator(i);
@@ -109,8 +137,12 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
             return null;
         }
 
-        public Bitmap.BitmapIterator rfind0() {
-            for (int i = index - 1; i >= 0; --i) {
+        public LTLBitmap.BitmapIterator rfind0() {
+            int i = index;
+            if (i == size) {
+                --i;
+            }
+            for (; i >= 0; --i) {
                 if (bitset.get(i) == false) {
                     return new Iterator(i);
                 }
@@ -118,8 +150,12 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
             return null;
         }
 
-        public Bitmap.BitmapIterator find1() {
-            for (int i = index; i < size; ++i) {
+        public LTLBitmap.BitmapIterator find1() {
+            int i = index;
+            if (i == size) {
+                --i;
+            }
+            for (; i < size; ++i) {
                 if (bitset.get(i) == true) {
                     return new Iterator(i);
                 }
@@ -127,7 +163,7 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
             return null;
         }
 
-        public Bitmap.BitmapIterator rfind1() {
+        public LTLBitmap.BitmapIterator rfind1() {
             for (int i = index - 1; i >= 0; --i) {
                 if (bitset.get(i) == true) {
                     return new Iterator(i);
@@ -137,6 +173,9 @@ public class RawBitmap implements Bitmap.BitmapAdapter {
         }
 
         public boolean currentBit() {
+            if (index == size) {
+                throw new IndexOutOfBoundsException();
+            }
             return bitset.get(index);
         }
 
