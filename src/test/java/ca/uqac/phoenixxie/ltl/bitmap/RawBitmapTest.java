@@ -25,13 +25,13 @@ public class RawBitmapTest {
         assertEquals(bitmap.size(), 7);
 
         assertEquals(bitmap.firstBit(), false);
-        bitmap.opShiftLeft1Bit();
-        assertEquals(bitmap.firstBit(), true);
-        assertEquals(bitmap.size(), 6);
-        assertEquals(bitmap.toString(), "101100");
+        LTLBitmap.BitmapAdapter bm = bitmap.removeFirstBit();
+        assertEquals(bm.firstBit(), true);
+        assertEquals(bm.size(), 6);
+        assertEquals(bm.toString(), "101100");
 
-        bitmap.opNot();
-        assertEquals(bitmap.toString(), "010011");
+        bm = bm.opNot();
+        assertEquals(bm.toString(), "010011");
     }
 
     @Test
@@ -87,8 +87,8 @@ public class RawBitmapTest {
         bm2.add(true);
         bm2.add(false);
 
-        bm1.opAnd(bm2);
-        assertEquals(bm1.toString(), "0010");
+        LTLBitmap.BitmapAdapter bm = bm1.opAnd(bm2);
+        assertEquals(bm.toString(), "0010");
     }
 
     @Test
@@ -106,8 +106,8 @@ public class RawBitmapTest {
         bm2.add(true);
         bm2.add(false);
 
-        bm1.opOr(bm2);
-        assertEquals(bm1.toString(), "1110");
+        LTLBitmap.BitmapAdapter bm = bm1.opOr(bm2);
+        assertEquals(bm.toString(), "1110");
     }
 
     @Test
@@ -125,7 +125,7 @@ public class RawBitmapTest {
         bm2.add(true);
         bm2.add(false);
 
-        bm1.opXor(bm2);
-        assertEquals(bm1.toString(), "1100");
+        LTLBitmap.BitmapAdapter bm = bm1.opXor(bm2);
+        assertEquals(bm.toString(), "1100");
     }
 }

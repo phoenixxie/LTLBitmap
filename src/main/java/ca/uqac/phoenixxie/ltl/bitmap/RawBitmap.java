@@ -19,6 +19,14 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return sb.toString();
     }
 
+    @Override
+    public LTLBitmap.BitmapAdapter clone() {
+        RawBitmap bm = new RawBitmap();
+        bm.bitset = (BitSet)this.bitset.clone();
+        bm.size = this.size;
+        return bm;
+    }
+
     public int getCapacity() {
         return bitset.size();
     }
@@ -65,31 +73,52 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         }
     }
 
-    public void opNot() {
-        bitset.flip(0, size);
+    public LTLBitmap.BitmapAdapter opNot() {
+        RawBitmap bm = (RawBitmap) clone();
+        bm.bitset.flip(0, size);
+        return bm;
     }
 
-    public void opAnd(LTLBitmap.BitmapAdapter bm) {
+    public LTLBitmap.BitmapAdapter opAnd(LTLBitmap.BitmapAdapter bm) {
+        RawBitmap left = (RawBitmap) clone();
         RawBitmap right = (RawBitmap) bm;
-        bitset.and(right.bitset);
-        size = Math.max(size, right.size);
+        left.bitset.and(right.bitset);
+        left.size = Math.max(left.size, right.size);
+        return left;
     }
 
-    public void opOr(LTLBitmap.BitmapAdapter bm) {
+    public LTLBitmap.BitmapAdapter opOr(LTLBitmap.BitmapAdapter bm) {
+        RawBitmap left = (RawBitmap) clone();
         RawBitmap right = (RawBitmap) bm;
-        bitset.or(right.bitset);
-        size = Math.max(size, right.size);
+        left.bitset.or(right.bitset);
+        left.size = Math.max(left.size, right.size);
+        return left;
     }
 
-    public void opXor(LTLBitmap.BitmapAdapter bm) {
+    public LTLBitmap.BitmapAdapter opXor(LTLBitmap.BitmapAdapter bm) {
+        RawBitmap left = (RawBitmap) clone();
         RawBitmap right = (RawBitmap) bm;
-        bitset.xor(right.bitset);
-        size = Math.max(size, right.size);
+        left.bitset.xor(right.bitset);
+        left.size = Math.max(left.size, right.size);
+        return left;
     }
 
-    public void opShiftLeft1Bit() {
-        bitset = bitset.get(1, size);
-        --size;
+    public LTLBitmap.BitmapAdapter removeFirstBit() {
+        RawBitmap bm = (RawBitmap) clone();
+        bm.bitset = bm.bitset.get(1, bm.size);
+        --bm.size;
+        return bm;
+    }
+
+    @Override
+    public LTLBitmap.BitmapAdapter removeFromEnd(int len) {
+        if (len > size) {
+            throw new InvalidParameterException();
+        }
+        RawBitmap bm = (RawBitmap) clone();
+        bm.bitset = bm.bitset.get(0, bm.size - len);
+        bm.size -= len;
+        return bm;
     }
 
     public LTLBitmap.BitmapIterator begin() {
