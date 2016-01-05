@@ -3,65 +3,6 @@ package ca.uqac.phoenixxie.ltl.bitmap;
 import java.security.InvalidParameterException;
 
 public class LTLBitmap {
-    enum Type {
-        RAW,
-        JAVAEWAH
-    }
-
-    public interface BitmapIterator {
-        int index();
-
-        void moveForward(int offset);
-
-        BitmapIterator find0();
-
-        BitmapIterator rfind0();
-
-        BitmapIterator find1();
-
-        BitmapIterator rfind1();
-
-        boolean currentBit();
-
-        boolean isEnd();
-    }
-
-    public interface BitmapAdapter extends Cloneable {
-        void add(boolean bit);
-
-        void addMany(boolean bit, int count);
-
-        int getCapacity();
-
-        int size();
-
-        boolean firstBit();
-
-        boolean lastBit();
-
-        void clear(boolean bit);
-
-        BitmapAdapter opNot();
-
-        BitmapAdapter opAnd(BitmapAdapter bm);
-
-        BitmapAdapter opOr(BitmapAdapter bm);
-
-        BitmapAdapter opXor(BitmapAdapter bm);
-
-        BitmapAdapter removeFirstBit();
-
-        BitmapAdapter removeFromEnd(int len);
-
-        BitmapAdapter clone();
-
-        BitmapIterator begin();
-
-        BitmapIterator end();
-
-        String toString();
-    }
-
     private final Type type;
     private final BitmapAdapter bitmap;
 
@@ -104,55 +45,21 @@ public class LTLBitmap {
         return bitmap.toString();
     }
 
-    public int getCapacity() {
-        return bitmap.getCapacity();
-    }
-
-    public void clear(boolean bit) {
-        bitmap.clear(bit);
-    }
-
     public LTLBitmap opNot() {
         return new LTLBitmap(type, bitmap.opNot());
     }
 
     public LTLBitmap opAnd(LTLBitmap bm) {
-        BitmapAdapter left = this.bitmap;
-        BitmapAdapter right = bm.bitmap;
-        int diff = left.size() - right.size();
-        if (diff > 0) {
-           left = left.removeFromEnd(diff);
-        } else if (diff < 0) {
-            right = right.removeFromEnd(-diff);
-        }
-
-        return new LTLBitmap(type, left.opAnd(right));
+        return new LTLBitmap(type, bitmap.opAnd(bm.bitmap));
     }
 
     public LTLBitmap opOr(LTLBitmap bm) {
-        BitmapAdapter left = this.bitmap;
-        BitmapAdapter right = bm.bitmap;
-        int diff = left.size() - right.size();
-        if (diff > 0) {
-            left = left.removeFromEnd(diff);
-        } else if (diff < 0) {
-            right = right.removeFromEnd(-diff);
-        }
-
-        return new LTLBitmap(type, left.opOr(right));
+        return new LTLBitmap(type, bitmap.opOr(bm.bitmap));
     }
 
     public LTLBitmap opThen(LTLBitmap bm) {
-        BitmapAdapter left = this.bitmap;
-        BitmapAdapter right = bm.bitmap;
-        int diff = left.size() - right.size();
-        if (diff > 0) {
-            left = left.removeFromEnd(diff);
-        } else if (diff < 0) {
-            right = right.removeFromEnd(-diff);
-        }
-        left = left.opNot();
-        return new LTLBitmap(type, left.opOr(right));
+        BitmapAdapter left = bitmap.opNot();
+        return new LTLBitmap(type, left.opOr(bm.bitmap));
     }
 
     public LTLBitmap opNext() {
@@ -327,7 +234,6 @@ public class LTLBitmap {
         return new LTLBitmap(type, newBm);
     }
 
-
     public LTLBitmap opRelease(LTLBitmap rightBm) {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
@@ -354,44 +260,108 @@ public class LTLBitmap {
             if (itb1.index() > itb.index()) {
                 off = itb1.index() - itb.index();
                 newBm.addMany(false, off);
-                ita.moveForward(off);
                 itb = itb1;
+                ita.moveForward(off);
             }
 
             BitmapIterator itb0 = itb.find0();
             if (itb0 == null) {
-                itb0 = right.end();
-            }
-
-            off = itb0.index() - itb.index();
-            newBm.addMany(true, off);
-            ita.moveForward(off - 1);
-            itb = itb0;
-            if (itb.isEnd()) {
-                ita.moveForward(1);
                 break;
             }
-            if (ita.currentBit() == false) {
-                ita.moveForward(1);
+
+            BitmapIterator ita1 = ita.find1();
+            if (ita1 == null) {
+                break;
+            }
+
+            if (ita1.index() >= itb0.index()) {
+                off = itb0.index() - itb.index();
+                newBm.addMany(false, off);
+                itb = itb0;
+                ita.moveForward(off);
                 continue;
             }
 
-            BitmapIterator ita0 = ita.find0();
+            BitmapIterator ita0 = ita1.find0();
             if (ita0 == null) {
                 ita0 = left.end();
             }
 
             off = ita0.index() - ita.index();
-            newBm.addMany(true, off - 1);
+            newBm.addMany(true, off);
+            itb.moveForward(off);
             ita = ita0;
-            itb.moveForward(off - 1);
         }
 
-        if (!ita.isEnd()) {
-            newBm.addMany(false, left.size() - ita.index());
+        if (itb.isEnd()) {
+            return new LTLBitmap(type, newBm);
         }
 
-        assert (newBm.size() == left.size());
+        BitmapIterator it0 = right.end().rfind0();
+        if (it0 == null || it0.index() < itb.index()) {
+            newBm.addMany(true, right.size() - itb.index());
+        } else {
+            newBm.addMany(false, it0.index() - itb.index() + 1);
+            newBm.addMany(true, right.size() - newBm.size());
+        }
+
+        assert (newBm.size() == right.size());
         return new LTLBitmap(type, newBm);
+    }
+
+    enum Type {
+        RAW,
+        JAVAEWAH
+    }
+
+    public interface BitmapIterator {
+        int index();
+
+        void moveForward(int offset);
+
+        BitmapIterator find0();
+
+        BitmapIterator rfind0();
+
+        BitmapIterator find1();
+
+        BitmapIterator rfind1();
+
+        boolean currentBit();
+
+        boolean isEnd();
+    }
+
+
+    public interface BitmapAdapter extends Cloneable {
+        void add(boolean bit);
+
+        void addMany(boolean bit, int count);
+
+        int size();
+
+        boolean firstBit();
+
+        boolean lastBit();
+
+        BitmapAdapter opNot();
+
+        BitmapAdapter opAnd(BitmapAdapter bm);
+
+        BitmapAdapter opOr(BitmapAdapter bm);
+
+        BitmapAdapter opXor(BitmapAdapter bm);
+
+        BitmapAdapter removeFirstBit();
+
+        BitmapAdapter removeFromEnd(int len);
+
+        BitmapAdapter clone();
+
+        BitmapIterator begin();
+
+        BitmapIterator end();
+
+        String toString();
     }
 }

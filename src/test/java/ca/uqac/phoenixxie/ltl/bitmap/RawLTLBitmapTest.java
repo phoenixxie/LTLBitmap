@@ -184,6 +184,26 @@ public class RawLTLBitmapTest {
         bm = left.opRelease(right);
         assertEquals("0000R1111", "1111", bm.toString());
 
+        left = newBm("0110");
+        right = newBm("1100");
+        bm = left.opRelease(right);
+        assertEquals("0110R1100", "1110", bm.toString());
+
+        left = newBm("1101");
+        right = newBm("1000");
+        bm = left.opRelease(right);
+        assertEquals("1101R1000", "1100", bm.toString());
+
+        left = newBm("11100");
+        right = newBm("10001");
+        bm = left.opRelease(right);
+        assertEquals("11100R10001", "11101", bm.toString());
+
+        left = newBm("0000");
+        right = newBm("1111");
+        bm = left.opRelease(right);
+        assertEquals("0000R1111", "1111", bm.toString());
+
         left = newBm("1000");
         right = newBm("01");
         bm = left.opRelease(right);
@@ -192,12 +212,12 @@ public class RawLTLBitmapTest {
         left = newBm("1010");
         right = newBm("0101");
         bm = left.opRelease(right);
-        assertEquals("1010R0101", "0101", bm.toString());
+        assertEquals("1010R0101", "0001", bm.toString());
 
         left = newBm("0101");
         right = newBm("1010");
         bm = left.opRelease(right);
-        assertEquals("0101R1010", "1010", bm.toString());
+        assertEquals("0101R1010", "0000", bm.toString());
 
         left = newBm("1000");
         right = newBm("1000");
@@ -213,8 +233,8 @@ public class RawLTLBitmapTest {
 //        left.opNot();
 //        String s1 = bm.toString();
 //
-//        
-//        
+//
+//
 //        LTLBitmap left = newBm("1010");
 //        right = newBm("0101");
 //        left.opNot();

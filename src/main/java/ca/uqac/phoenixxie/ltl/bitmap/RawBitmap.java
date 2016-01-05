@@ -27,14 +27,12 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return bm;
     }
 
-    public int getCapacity() {
-        return bitset.size();
-    }
-
+    @Override
     public boolean firstBit() {
         return bitset.get(0);
     }
 
+    @Override
     public boolean lastBit() {
         return bitset.get(size - 1);
     }
@@ -46,6 +44,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return bitset.get(index);
     }
 
+    @Override
     public void add(boolean bit) {
         if (bit) {
             bitset.set(size);
@@ -55,30 +54,26 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         ++size;
     }
 
+    @Override
     public void addMany(boolean bit, int count) {
         for (int i = 0; i < count; ++i) {
             add(bit);
         }
     }
 
+    @Override
     public int size() {
         return size;
     }
 
-    public void clear(boolean bit) {
-        if (bit) {
-            bitset.set(0, size);
-        } else {
-            bitset.clear(0, size);
-        }
-    }
-
+    @Override
     public LTLBitmap.BitmapAdapter opNot() {
         RawBitmap bm = (RawBitmap) clone();
         bm.bitset.flip(0, size);
         return bm;
     }
 
+    @Override
     public LTLBitmap.BitmapAdapter opAnd(LTLBitmap.BitmapAdapter bm) {
         RawBitmap left = (RawBitmap) clone();
         RawBitmap right = (RawBitmap) bm;
@@ -87,6 +82,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return left;
     }
 
+    @Override
     public LTLBitmap.BitmapAdapter opOr(LTLBitmap.BitmapAdapter bm) {
         RawBitmap left = (RawBitmap) clone();
         RawBitmap right = (RawBitmap) bm;
@@ -95,6 +91,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return left;
     }
 
+    @Override
     public LTLBitmap.BitmapAdapter opXor(LTLBitmap.BitmapAdapter bm) {
         RawBitmap left = (RawBitmap) clone();
         RawBitmap right = (RawBitmap) bm;
@@ -103,6 +100,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return left;
     }
 
+    @Override
     public LTLBitmap.BitmapAdapter removeFirstBit() {
         RawBitmap bm = (RawBitmap) clone();
         bm.bitset = bm.bitset.get(1, bm.size);
@@ -121,10 +119,12 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return bm;
     }
 
+    @Override
     public LTLBitmap.BitmapIterator begin() {
         return new Iterator();
     }
 
+    @Override
     public LTLBitmap.BitmapIterator end() {
         return new Iterator(size);
     }
@@ -143,10 +143,12 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             this.index = index;
         }
 
+        @Override
         public int index() {
             return index;
         }
 
+        @Override
         public void moveForward(int offset) {
             if (offset < 0) {
                 throw new InvalidParameterException();
@@ -157,6 +159,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             index += offset;
         }
 
+        @Override
         public LTLBitmap.BitmapIterator find0() {
             for (int i = index; i < size; ++i) {
                 if (bitset.get(i) == false) {
@@ -166,6 +169,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             return null;
         }
 
+        @Override
         public LTLBitmap.BitmapIterator rfind0() {
             int i = index;
             if (i == size) {
@@ -179,6 +183,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             return null;
         }
 
+        @Override
         public LTLBitmap.BitmapIterator find1() {
             int i = index;
             if (i == size) {
@@ -192,6 +197,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             return null;
         }
 
+        @Override
         public LTLBitmap.BitmapIterator rfind1() {
             for (int i = index - 1; i >= 0; --i) {
                 if (bitset.get(i) == true) {
@@ -201,6 +207,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             return null;
         }
 
+        @Override
         public boolean currentBit() {
             if (index == size) {
                 throw new IndexOutOfBoundsException();
@@ -208,6 +215,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
             return bitset.get(index);
         }
 
+        @Override
         public boolean isEnd() {
             return index == size;
         }
