@@ -22,7 +22,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
     @Override
     public LTLBitmap.BitmapAdapter clone() {
         RawBitmap bm = new RawBitmap();
-        bm.bitset = (BitSet)this.bitset.clone();
+        bm.bitset = (BitSet) this.bitset.clone();
         bm.size = this.size;
         return bm;
     }
@@ -33,8 +33,23 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
-    public boolean lastBit() {
-        return bitset.get(size - 1);
+    public int last0() {
+        for (int i = size - 1; i >= 0; --i) {
+            if (bitset.get(i) == false) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public int last1() {
+        for (int i = size - 1; i >= 0; --i) {
+            if (bitset.get(i) == true) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public boolean get(int index) {
@@ -124,7 +139,6 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return new Iterator();
     }
 
-    @Override
     public LTLBitmap.BitmapIterator end() {
         return new Iterator(size);
     }
@@ -170,36 +184,12 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         }
 
         @Override
-        public LTLBitmap.BitmapIterator rfind0() {
-            int i = index;
-            if (i == size) {
-                --i;
-            }
-            for (; i >= 0; --i) {
-                if (bitset.get(i) == false) {
-                    return new Iterator(i);
-                }
-            }
-            return null;
-        }
-
-        @Override
         public LTLBitmap.BitmapIterator find1() {
             int i = index;
             if (i == size) {
                 --i;
             }
             for (; i < size; ++i) {
-                if (bitset.get(i) == true) {
-                    return new Iterator(i);
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public LTLBitmap.BitmapIterator rfind1() {
-            for (int i = index - 1; i >= 0; --i) {
                 if (bitset.get(i) == true) {
                     return new Iterator(i);
                 }

@@ -1,7 +1,9 @@
 package ca.uqac.phoenixxie.ltl.bitmap;
 
+import com.googlecode.javaewah.Buffer;
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.IntIterator;
+import com.googlecode.javaewah.RunningLengthWord;
 
 public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
     private EWAHCompressedBitmap bitmap;
@@ -44,8 +46,13 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
-    public boolean lastBit() {
-        return bitmap.get(bitmap.sizeInBits() - 1);
+    public int last0() {
+        return bitmap.findLast0();
+    }
+
+    @Override
+    public int last1() {
+        return bitmap.findLast1();
     }
 
     public boolean get(int index) {
@@ -84,7 +91,7 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public LTLBitmap.BitmapAdapter removeFirstBit() {
-        return null;
+        return new EWAHBitmap(bitmap.removeFirstBit());
     }
 
     @Override
@@ -124,54 +131,273 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public LTLBitmap.BitmapIterator begin() {
-        return null;
+        return new Iterator();
     }
 
     @Override
     public LTLBitmap.BitmapIterator end() {
-        return null;
+        return new Iterator('X');
     }
 
-    class Iterator implements LTLBitmap.BitmapIterator {
+    public class Iterator implements LTLBitmap.BitmapIterator {
+        private final Buffer buffer = bitmap.getBuffer();
+        private final int sizeInWords = buffer.sizeInWords();
+
+        private int index = 0;
+
+        private boolean inClean = true;
+        private int pointerInWords = 0;
+        private int currMarkerStartPos = 0;
+        private boolean isEnd = false;
+
+        private long currLiteralWord;
+        private int pointerInDirtyWord = 0;
+        private int pointerDirtyWord = 0;
+        private int pointerInRunningLength = 0;
+
+        private long currRunningLength;
+        private boolean currRunningBit;
+        private int currNumberOfDirtyWords;
+        private int currMarkerMaxBits;
+        private int currRunningLengthMaxBits;
+        private int currDirtyWordsMaxBits;
+
+        public Iterator() {
+            if (bitmap.sizeInBits() == 0) {
+                isEnd = true;
+                return;
+            }
+
+            updateMarkerInfo();
+            updatePointerInThisMarker(0);
+        }
+
+        Iterator(char ignore) {
+            isEnd = true;
+            index = bitmap.sizeInBits();
+        }
+
+        private Iterator(int index, int pointerInWords, int currMarkerStartPos) {
+            if (bitmap.sizeInBits() == 0) {
+                isEnd = true;
+                return;
+            }
+
+            this.index = index;
+            this.pointerInWords = pointerInWords;
+            this.currMarkerStartPos = currMarkerStartPos;
+
+            updateMarkerInfo();
+            updatePointerInThisMarker(this.index - currMarkerStartPos);
+        }
 
         @Override
         public int index() {
-            return 0;
+            return index;
+        }
+
+        private void updateMarkerInfo() {
+            currRunningLength = RunningLengthWord.getRunningLength(this.buffer, pointerInWords);
+            currRunningBit = RunningLengthWord.getRunningBit(this.buffer, pointerInWords);
+            currNumberOfDirtyWords = RunningLengthWord.getNumberOfLiteralWords(this.buffer, pointerInWords);
+            currMarkerMaxBits = EWAHCompressedBitmap.WORD_IN_BITS * ((int) currRunningLength + currNumberOfDirtyWords);
+            currRunningLengthMaxBits = EWAHCompressedBitmap.WORD_IN_BITS * (int) currRunningLength;
+            currDirtyWordsMaxBits = EWAHCompressedBitmap.WORD_IN_BITS * currNumberOfDirtyWords;
+
+            assert currRunningLength > 0 || currNumberOfDirtyWords > 0;
+
+        }
+
+        private void updatePointerInThisMarker(int pos) {
+            if (pos >= currMarkerMaxBits) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            if (pos < currRunningLengthMaxBits) {
+                inClean = true;
+                pointerInRunningLength = pos;
+            } else {
+                pos -= currRunningLengthMaxBits;
+                inClean = false;
+                pointerDirtyWord = pos / EWAHCompressedBitmap.WORD_IN_BITS;
+                currLiteralWord = buffer.getWord(pointerInWords + 1 + pointerDirtyWord);
+                pointerInDirtyWord = pos % EWAHCompressedBitmap.WORD_IN_BITS;
+            }
+        }
+
+        private void moveForwardOneMarker() {
+            if (pointerInWords >= sizeInWords) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            pointerInWords += 1 + currNumberOfDirtyWords;
+            currMarkerStartPos += currMarkerMaxBits;
+
+            updateMarkerInfo();
         }
 
         @Override
         public void moveForward(int offset) {
+            if (isEnd) {
+                throw new IndexOutOfBoundsException();
+            }
 
+            if (index + offset > bitmap.sizeInBits()) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            index += offset;
+            if (inClean) {
+                int leftRunningLengthBits = currRunningLengthMaxBits - pointerInRunningLength;
+                if (offset < leftRunningLengthBits) {
+                    pointerInRunningLength += offset;
+                    return;
+                }
+                offset -= leftRunningLengthBits;
+            }
+
+            int usedDirtyBits = pointerInRunningLength + pointerDirtyWord * EWAHCompressedBitmap.WORD_IN_BITS;
+            int leftDirtyBits = currDirtyWordsMaxBits - usedDirtyBits;
+            if (offset < leftDirtyBits) {
+                inClean = false;
+                int dirtyBits = usedDirtyBits + offset;
+                pointerDirtyWord = dirtyBits / EWAHCompressedBitmap.WORD_IN_BITS;
+                currLiteralWord = buffer.getWord(pointerInWords + 1 + pointerDirtyWord);
+                pointerInDirtyWord = dirtyBits % EWAHCompressedBitmap.WORD_IN_BITS;
+                return;
+            }
+            offset -= leftDirtyBits;
+
+            moveForwardOneMarker();
+            while (offset > currMarkerMaxBits) {
+                offset -= currMarkerMaxBits;
+                moveForwardOneMarker();
+            }
+
+            assert (index - currMarkerStartPos == offset);
+            updatePointerInThisMarker(offset);
         }
 
         @Override
         public LTLBitmap.BitmapIterator find0() {
-            return null;
-        }
+            if (isEnd) {
+                throw new IndexOutOfBoundsException();
+            }
 
-        @Override
-        public LTLBitmap.BitmapIterator rfind0() {
+            final long full = ~0L;
+
+            Iterator itor = new Iterator(index, pointerInWords, currMarkerStartPos);
+            while (itor.pointerInWords < itor.sizeInWords) {
+                if (itor.inClean) {
+                    if (itor.currRunningBit == false) {
+                        return itor;
+                    }
+                }
+
+                int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits;
+                for (int i = itor.pointerDirtyWord;
+                     i < itor.currNumberOfDirtyWords;
+                     ++i, itor.pointerInDirtyWord = 0, startbits += EWAHCompressedBitmap.WORD_IN_BITS
+                        ) {
+
+                    long w = itor.buffer.getWord(itor.pointerInWords + 1 + i);
+                    int leftbits = Math.min(EWAHCompressedBitmap.WORD_IN_BITS, bitmap.sizeInBits() - startbits);
+                    long mask = full;
+                    if (leftbits != EWAHCompressedBitmap.WORD_IN_BITS) {
+                        mask = (1L << leftbits) - 1;
+                    }
+                    mask = (mask >>> itor.pointerInDirtyWord) << itor.pointerInDirtyWord;
+                    if ((w & mask) == mask) {
+                        continue;
+                    }
+
+                    mask = 1L << itor.pointerInDirtyWord;
+                    for (int j = 0; i < leftbits - itor.pointerInDirtyWord; ++j) {
+                        if ((w & mask) == 0) {
+                            itor.index = startbits + j;
+                            itor.updatePointerInThisMarker(itor.index - itor.currMarkerStartPos);
+                            return itor;
+                        }
+                        mask <<= 1L;
+                    }
+                }
+                itor.moveForwardOneMarker();
+                itor.index = itor.currMarkerStartPos;
+                itor.updatePointerInThisMarker(0);
+            }
+
             return null;
         }
 
         @Override
         public LTLBitmap.BitmapIterator find1() {
-            return null;
-        }
+            if (isEnd) {
+                throw new IndexOutOfBoundsException();
+            }
 
-        @Override
-        public LTLBitmap.BitmapIterator rfind1() {
+            Iterator itor = new Iterator(index, pointerInWords, currMarkerStartPos);
+            while (itor.pointerInWords < itor.sizeInWords) {
+                if (itor.inClean) {
+                    if (itor.currRunningBit == true) {
+                        return itor;
+                    }
+                }
+
+                int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits;
+                for (int i = itor.pointerDirtyWord;
+                     i < itor.currNumberOfDirtyWords;
+                     ++i, itor.pointerInDirtyWord = 0, startbits += EWAHCompressedBitmap.WORD_IN_BITS
+                        ) {
+
+                    long w = itor.buffer.getWord(itor.pointerInWords + 1 + i);
+                    int leftbits = Math.min(EWAHCompressedBitmap.WORD_IN_BITS, bitmap.sizeInBits() - startbits);
+
+                    long mask = 0L;
+                    if (leftbits != EWAHCompressedBitmap.WORD_IN_BITS) {
+                        mask = ~((1L << leftbits) - 1);
+                    }
+                    if (itor.pointerInDirtyWord > 0) {
+                        mask |= (1 << itor.pointerInDirtyWord) - 1;
+                    }
+                    if ((w | mask) == mask) {
+                        continue;
+                    }
+
+                    mask = 1L << itor.pointerInDirtyWord;
+                    for (int j = 0; i < leftbits - itor.pointerInDirtyWord; ++j) {
+                        if ((w & mask) == 1) {
+                            itor.index = startbits + j;
+                            itor.updatePointerInThisMarker(itor.index - itor.currMarkerStartPos);
+                            return itor;
+                        }
+                        mask <<= 1L;
+                    }
+                }
+                itor.moveForwardOneMarker();
+                itor.index = itor.currMarkerStartPos;
+                itor.updatePointerInThisMarker(0);
+            }
+
             return null;
         }
 
         @Override
         public boolean currentBit() {
-            return false;
+            if (isEnd) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            if (inClean) {
+                return currRunningBit;
+            } else {
+                long mask = 1 << pointerInDirtyWord;
+                return ((mask & currLiteralWord) == 1);
+            }
         }
 
         @Override
         public boolean isEnd() {
-            return false;
+            return isEnd;
         }
     }
 }

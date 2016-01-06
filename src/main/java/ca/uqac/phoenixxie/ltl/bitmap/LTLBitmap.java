@@ -67,28 +67,26 @@ public class LTLBitmap {
     }
 
     public LTLBitmap opGlobal() {
-        BitmapIterator itor = bitmap.end();
-        BitmapIterator itNext = itor.rfind0();
-        if (itNext == null) {
+        int last0 = bitmap.last0();
+        if (last0 == -1) {
             return new LTLBitmap(type, bitmap.clone());
         }
 
         BitmapAdapter newBm = createAdapter(type);
-        newBm.addMany(false, itNext.index() + 1);
-        newBm.addMany(true, bitmap.size() - itNext.index() - 1);
+        newBm.addMany(false, last0 + 1);
+        newBm.addMany(true, bitmap.size() - last0 - 1);
         return new LTLBitmap(type, newBm);
     }
 
     public LTLBitmap opFuture() {
-        BitmapIterator itor = bitmap.end();
-        BitmapIterator pos = itor.rfind1();
-        if (pos == null) {
+        int last1 = bitmap.last1();
+        if (last1 == -1) {
             return new LTLBitmap(type, bitmap.clone());
         }
 
         BitmapAdapter newBm = createAdapter(type);
-        newBm.addMany(true, pos.index() + 1);
-        newBm.addMany(false, bitmap.size() - pos.index() - 1);
+        newBm.addMany(true, last1 + 1);
+        newBm.addMany(false, bitmap.size() - last1 - 1);
         return new LTLBitmap(type, newBm);
     }
 
@@ -222,11 +220,11 @@ public class LTLBitmap {
             return new LTLBitmap(type, newBm);
         }
 
-        BitmapIterator it0 = left.end().rfind0();
-        if (it0 == null || it0.index() < ita.index()) {
+        int last0 = left.last0();
+        if (last0 == -1 || last0 < ita.index()) {
             newBm.addMany(true, left.size() - ita.index());
         } else {
-            newBm.addMany(false, it0.index() - ita.index() + 1);
+            newBm.addMany(false, last0 - ita.index() + 1);
             newBm.addMany(true, left.size() - newBm.size());
         }
 
@@ -297,11 +295,11 @@ public class LTLBitmap {
             return new LTLBitmap(type, newBm);
         }
 
-        BitmapIterator it0 = right.end().rfind0();
-        if (it0 == null || it0.index() < itb.index()) {
+        int last0 = right.last0();
+        if (last0 == -1 || last0 < itb.index()) {
             newBm.addMany(true, right.size() - itb.index());
         } else {
-            newBm.addMany(false, it0.index() - itb.index() + 1);
+            newBm.addMany(false, last0 - itb.index() + 1);
             newBm.addMany(true, right.size() - newBm.size());
         }
 
@@ -321,11 +319,7 @@ public class LTLBitmap {
 
         BitmapIterator find0();
 
-        BitmapIterator rfind0();
-
         BitmapIterator find1();
-
-        BitmapIterator rfind1();
 
         boolean currentBit();
 
@@ -342,7 +336,9 @@ public class LTLBitmap {
 
         boolean firstBit();
 
-        boolean lastBit();
+        int last0();
+
+        int last1();
 
         BitmapAdapter opNot();
 

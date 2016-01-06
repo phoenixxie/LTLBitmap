@@ -12,26 +12,26 @@ public class RawBitmapTest {
         bitmap.add(true);
         bitmap.add(false);
 
-        assertEquals(bitmap.size(), 3);
-        assertEquals(bitmap.get(0), false);
-        assertEquals(bitmap.get(1), true);
-        assertEquals(bitmap.toString(), "010");
+        assertEquals(3, bitmap.size());
+        assertEquals(false, bitmap.get(0));
+        assertEquals(true, bitmap.get(1));
+        assertEquals("010", bitmap.toString());
 
         bitmap.addMany(true, 2);
-        assertEquals(bitmap.lastBit(), true);
-        assertEquals(bitmap.size(), 5);
+        assertEquals(4, bitmap.last1());
+        assertEquals(5, bitmap.size());
         bitmap.addMany(false, 2);
-        assertEquals(bitmap.lastBit(), false);
-        assertEquals(bitmap.size(), 7);
+        assertEquals(6, bitmap.last0());
+        assertEquals(7, bitmap.size());
 
-        assertEquals(bitmap.firstBit(), false);
+        assertEquals(false, bitmap.firstBit());
         LTLBitmap.BitmapAdapter bm = bitmap.removeFirstBit();
-        assertEquals(bm.firstBit(), true);
-        assertEquals(bm.size(), 6);
-        assertEquals(bm.toString(), "101100");
+        assertEquals(true, bm.firstBit());
+        assertEquals(6, bm.size());
+        assertEquals("101100", bm.toString());
 
         bm = bm.opNot();
-        assertEquals(bm.toString(), "010011");
+        assertEquals("010011", bm.toString());
     }
 
     @Test
@@ -66,10 +66,8 @@ public class RawBitmapTest {
 
         it = bitmap.end();
         assertEquals(it.index(), bitmap.size());
-        it2 = it.rfind1();
-        assertEquals(4, it2.index());
-        it2 = it.rfind0();
-        assertEquals(6, it2.index());
+        assertEquals(4, bitmap.last1());
+        assertEquals(6, bitmap.last0());
     }
 
     @Test
