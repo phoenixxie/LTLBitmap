@@ -20,8 +20,8 @@ public class LTLBitmap {
         switch (type) {
             case RAW:
                 return new RawBitmap();
-            case JAVAEWAH:
-                break;
+            case EWAH:
+                return new EWAHBitmap();
         }
         throw new InvalidParameterException();
     }
@@ -96,12 +96,8 @@ public class LTLBitmap {
         }
         BitmapAdapter left = this.bitmap;
         BitmapAdapter right = rightBm.bitmap;
-        int diff = left.size() - right.size();
-        if (diff > 0) {
-            left = left.removeFromEnd(diff);
-        } else if (diff < 0) {
-            right = right.removeFromEnd(-diff);
-        }
+        int maxsize = Math.max(left.size(), right.size());
+        int minsize = Math.min(left.size(), right.size());
 
         BitmapIterator ita = left.begin();
         BitmapIterator itb = right.begin();
@@ -111,6 +107,9 @@ public class LTLBitmap {
             int off;
             BitmapIterator ita1 = ita.find1();
             if (ita1 == null) {
+                break;
+            }
+            if (ita1.index() >= minsize) {
                 break;
             }
             if (ita1.index() > ita.index()) {
@@ -130,6 +129,9 @@ public class LTLBitmap {
                 break;
             }
 
+            if (itb1.index() >= minsize) {
+                break;
+            }
             if (itb1.index() > ita0.index()) {
                 off = ita0.index() - ita.index();
                 newBm.addMany(false, off);
@@ -145,15 +147,18 @@ public class LTLBitmap {
 
             off = itb0.index() - itb.index();
             newBm.addMany(true, off);
+            if (itb0.index() >= minsize) {
+                if (itb0.isEnd()) {
+                    newBm.addMany(true, maxsize - newBm.size());
+                }
+                break;
+            }
             ita.moveForward(off);
             itb = itb0;
         }
 
-        if (!ita.isEnd()) {
-            newBm.addMany(false, left.size() - ita.index());
-        }
+        newBm.addMany(false, maxsize - newBm.size());
 
-        assert (newBm.size() == left.size());
         return new LTLBitmap(type, newBm);
     }
 
@@ -163,12 +168,8 @@ public class LTLBitmap {
         }
         BitmapAdapter left = this.bitmap;
         BitmapAdapter right = rightBm.bitmap;
-        int diff = left.size() - right.size();
-        if (diff > 0) {
-            left = left.removeFromEnd(diff);
-        } else if (diff < 0) {
-            right = right.removeFromEnd(-diff);
-        }
+        int maxsize = Math.max(left.size(), right.size());
+        int minsize = Math.min(left.size(), right.size());
 
         BitmapIterator ita = left.begin();
         BitmapIterator itb = right.begin();
@@ -178,6 +179,9 @@ public class LTLBitmap {
             int off;
             BitmapIterator ita1 = ita.find1();
             if (ita1 == null) {
+                break;
+            }
+            if (ita1.index() >= minsize) {
                 break;
             }
             if (ita1.index() > ita.index()) {
@@ -197,6 +201,9 @@ public class LTLBitmap {
                 break;
             }
 
+            if (itb1.index() >= minsize) {
+                break;
+            }
             if (itb1.index() > ita0.index()) {
                 off = ita0.index() - ita.index();
                 newBm.addMany(false, off);
@@ -212,8 +219,17 @@ public class LTLBitmap {
 
             off = itb0.index() - itb.index();
             newBm.addMany(true, off);
-            ita.moveForward(off);
             itb = itb0;
+            if (itb0.index() >= minsize) {
+                if (itb0.isEnd()) {
+                    ita = left.end();
+                    newBm.addMany(true, maxsize - newBm.size());
+                } else {
+                    ita.moveForward(minsize - itb0.index());
+                }
+                break;
+            }
+            ita.moveForward(off);
         }
 
         if (ita.isEnd()) {
@@ -222,13 +238,12 @@ public class LTLBitmap {
 
         int last0 = left.last0();
         if (last0 == -1 || last0 < ita.index()) {
-            newBm.addMany(true, left.size() - ita.index());
+            newBm.addMany(true, maxsize - newBm.size());
         } else {
             newBm.addMany(false, last0 - ita.index() + 1);
             newBm.addMany(true, left.size() - newBm.size());
         }
 
-        assert (newBm.size() == left.size());
         return new LTLBitmap(type, newBm);
     }
 
@@ -309,7 +324,7 @@ public class LTLBitmap {
 
     enum Type {
         RAW,
-        JAVAEWAH
+        EWAH
     }
 
     public interface BitmapIterator {
@@ -349,8 +364,6 @@ public class LTLBitmap {
         BitmapAdapter opXor(BitmapAdapter bm);
 
         BitmapAdapter removeFirstBit();
-
-        BitmapAdapter removeFromEnd(int len);
 
         BitmapAdapter clone();
 

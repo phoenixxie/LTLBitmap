@@ -27,6 +27,9 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public void addMany(boolean bit, int count) {
+        if (count <= 0) {
+            return;
+        }
         int fullwords = count / EWAHCompressedBitmap.WORD_IN_BITS;
         int left = count % EWAHCompressedBitmap.WORD_IN_BITS;
         bitmap.addStreamOfEmptyWords(bit, fullwords);
@@ -92,11 +95,6 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
     @Override
     public LTLBitmap.BitmapAdapter removeFirstBit() {
         return new EWAHBitmap(bitmap.removeFirstBit());
-    }
-
-    @Override
-    public LTLBitmap.BitmapAdapter removeFromEnd(int len) {
-        return null;
     }
 
     @Override
@@ -233,6 +231,12 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
             pointerInWords += 1 + currNumberOfDirtyWords;
             currMarkerStartPos += currMarkerMaxBits;
 
+            if (pointerInWords == sizeInWords) {
+                isEnd = true;
+                index = currMarkerStartPos;
+                return;
+            }
+
             updateMarkerInfo();
         }
 
@@ -246,36 +250,17 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                 throw new IndexOutOfBoundsException();
             }
 
-            index += offset;
-            if (inClean) {
-                int leftRunningLengthBits = currRunningLengthMaxBits - pointerInRunningLength;
-                if (offset < leftRunningLengthBits) {
-                    pointerInRunningLength += offset;
-                    return;
-                }
-                offset -= leftRunningLengthBits;
-            }
-
-            int usedDirtyBits = pointerInRunningLength + pointerDirtyWord * EWAHCompressedBitmap.WORD_IN_BITS;
-            int leftDirtyBits = currDirtyWordsMaxBits - usedDirtyBits;
-            if (offset < leftDirtyBits) {
-                inClean = false;
-                int dirtyBits = usedDirtyBits + offset;
-                pointerDirtyWord = dirtyBits / EWAHCompressedBitmap.WORD_IN_BITS;
-                currLiteralWord = buffer.getWord(pointerInWords + 1 + pointerDirtyWord);
-                pointerInDirtyWord = dirtyBits % EWAHCompressedBitmap.WORD_IN_BITS;
+            if (index + offset == bitmap.sizeInBits()) {
+                index = bitmap.sizeInBits();
+                isEnd = true;
                 return;
             }
-            offset -= leftDirtyBits;
 
-            moveForwardOneMarker();
-            while (offset > currMarkerMaxBits) {
-                offset -= currMarkerMaxBits;
+            index += offset;
+            while (currMarkerStartPos + currMarkerMaxBits < index) {
                 moveForwardOneMarker();
             }
-
-            assert (index - currMarkerStartPos == offset);
-            updatePointerInThisMarker(offset);
+            updatePointerInThisMarker(index - currMarkerStartPos);
         }
 
         @Override
@@ -292,6 +277,7 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                     if (itor.currRunningBit == false) {
                         return itor;
                     }
+                    itor.updatePointerInThisMarker(itor.currRunningLengthMaxBits);
                 }
 
                 int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits;
@@ -312,7 +298,7 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                     }
 
                     mask = 1L << itor.pointerInDirtyWord;
-                    for (int j = 0; i < leftbits - itor.pointerInDirtyWord; ++j) {
+                    for (int j = itor.pointerInDirtyWord; j < leftbits; ++j) {
                         if ((w & mask) == 0) {
                             itor.index = startbits + j;
                             itor.updatePointerInThisMarker(itor.index - itor.currMarkerStartPos);
@@ -322,6 +308,9 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                     }
                 }
                 itor.moveForwardOneMarker();
+                if (itor.isEnd) {
+                    return null;
+                }
                 itor.index = itor.currMarkerStartPos;
                 itor.updatePointerInThisMarker(0);
             }
@@ -340,6 +329,10 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                 if (itor.inClean) {
                     if (itor.currRunningBit == true) {
                         return itor;
+                    }
+                    // switch to dirty words
+                    if (itor.currNumberOfDirtyWords > 0) {
+                        itor.updatePointerInThisMarker(itor.currRunningLengthMaxBits);
                     }
                 }
 
@@ -364,8 +357,8 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                     }
 
                     mask = 1L << itor.pointerInDirtyWord;
-                    for (int j = 0; i < leftbits - itor.pointerInDirtyWord; ++j) {
-                        if ((w & mask) == 1) {
+                    for (int j = pointerInDirtyWord; j < leftbits; ++j) {
+                        if ((w & mask) == mask) {
                             itor.index = startbits + j;
                             itor.updatePointerInThisMarker(itor.index - itor.currMarkerStartPos);
                             return itor;
@@ -374,6 +367,9 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
                     }
                 }
                 itor.moveForwardOneMarker();
+                if (itor.isEnd) {
+                    return null;
+                }
                 itor.index = itor.currMarkerStartPos;
                 itor.updatePointerInThisMarker(0);
             }
@@ -390,8 +386,8 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
             if (inClean) {
                 return currRunningBit;
             } else {
-                long mask = 1 << pointerInDirtyWord;
-                return ((mask & currLiteralWord) == 1);
+                long mask = 1L << pointerInDirtyWord;
+                return ((mask & currLiteralWord) == mask);
             }
         }
 

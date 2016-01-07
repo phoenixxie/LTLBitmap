@@ -74,11 +74,6 @@ public class EWAHBitmapTest {
     }
 
     @Test
-    public void testLast1() throws Exception {
-
-    }
-
-    @Test
     public void testOpAnd() throws Exception {
         EWAHBitmap bm1 = new EWAHBitmap();
         EWAHBitmap bm2 = new EWAHBitmap();
@@ -134,4 +129,41 @@ public class EWAHBitmapTest {
         LTLBitmap.BitmapAdapter bm = bm1.opXor(bm2);
         assertEquals(bm.toString(), "1100");
     }
+
+    @Test
+    public void testIterator() throws Exception {
+        EWAHBitmap bitmap = new EWAHBitmap();
+        bitmap.add(false);
+        bitmap.add(true);
+        bitmap.add(false);
+
+        bitmap.addMany(true, 2);
+        bitmap.addMany(false, 2);
+        assertEquals("1", 7, bitmap.size());
+
+        LTLBitmap.BitmapIterator it = bitmap.begin();
+        assertEquals("2", 0, it.index());
+        assertEquals("3", false, it.currentBit());
+        it.moveForward(1);
+        assertEquals("4", 1, it.index());
+        assertEquals("5", true, it.currentBit());
+
+        LTLBitmap.BitmapIterator it2 = it.find0();
+        assertEquals("6", 2, it2.index());
+        assertEquals("7", false, it2.currentBit());
+
+        it2.moveForward(1);
+        LTLBitmap.BitmapIterator it3 = it2.find1();
+        assertEquals("8", 3, it3.index());
+
+        assertEquals("9", false, it3.isEnd());
+        it3.moveForward(4);
+        assertEquals("10", true, it3.isEnd());
+
+        it = bitmap.end();
+        assertEquals("11", it.index(), bitmap.size());
+        assertEquals("12", 4, bitmap.last1());
+        assertEquals("13", 6, bitmap.last0());
+    }
+
 }
