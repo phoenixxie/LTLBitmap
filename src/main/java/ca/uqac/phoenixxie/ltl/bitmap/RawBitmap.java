@@ -124,17 +124,6 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
-    public LTLBitmap.BitmapAdapter removeFromEnd(int len) {
-        if (len > size) {
-            throw new InvalidParameterException();
-        }
-        RawBitmap bm = (RawBitmap) clone();
-        bm.bitset = bm.bitset.get(0, bm.size - len);
-        bm.size -= len;
-        return bm;
-    }
-
-    @Override
     public LTLBitmap.BitmapIterator begin() {
         return new Iterator();
     }

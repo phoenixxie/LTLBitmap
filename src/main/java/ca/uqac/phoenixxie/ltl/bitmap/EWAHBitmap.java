@@ -242,6 +242,10 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
 
         @Override
         public void moveForward(int offset) {
+            if (offset <= 0) {
+                return;
+            }
+
             if (isEnd) {
                 throw new IndexOutOfBoundsException();
             }

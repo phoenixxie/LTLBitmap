@@ -106,7 +106,7 @@ public class EWAHTLBitmapTest {
         left = newBm("1000");
         right = newBm("01");
         bm = left.opUntil(right);
-        assertEquals("1000U01", "11", bm.toString());
+        assertEquals("1000U01", "1111", bm.toString());
 
         left = newBm("0101");
         right = newBm("0010");
@@ -117,6 +117,11 @@ public class EWAHTLBitmapTest {
         right = newBm("1000");
         bm = left.opUntil(right);
         assertEquals("1000U1000", "1000", bm.toString());
+
+        left = newBm("10");
+        right = newBm("0110");
+        bm = left.opUntil(right);
+        assertEquals("10U0110", "1110", bm.toString());
     }
 
     @Test
@@ -159,7 +164,7 @@ public class EWAHTLBitmapTest {
         left = newBm("1010");
         right = newBm("010");
         bm = left.opWeakUntil(right);
-        assertEquals("1000W01", "111", bm.toString());
+        assertEquals("1010W010", "1100", bm.toString());
 
         left = newBm("0101");
         right = newBm("0010");
@@ -207,7 +212,7 @@ public class EWAHTLBitmapTest {
         left = newBm("1000");
         right = newBm("01");
         bm = left.opRelease(right);
-        assertEquals("1000R01", "01", bm.toString());
+        assertEquals("1000R01", "0111", bm.toString());
 
         left = newBm("1010");
         right = newBm("0101");
