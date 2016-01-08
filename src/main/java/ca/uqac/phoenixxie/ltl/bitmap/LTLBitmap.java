@@ -22,6 +22,8 @@ public class LTLBitmap {
                 return new RawBitmap();
             case EWAH:
                 return new EWAHBitmap();
+            case ROARING:
+                return new RoaringBitmap();
         }
         throw new InvalidParameterException();
     }
@@ -359,7 +361,8 @@ public class LTLBitmap {
 
     enum Type {
         RAW,
-        EWAH
+        EWAH,
+        ROARING
     }
 
     public interface BitmapIterator {
@@ -381,6 +384,8 @@ public class LTLBitmap {
         void add(boolean bit);
 
         void addMany(boolean bit, int count);
+
+        boolean get(int position);
 
         int size();
 

@@ -52,6 +52,7 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
         return -1;
     }
 
+    @Override
     public boolean get(int index) {
         if (index >= size || index < 0) {
             throw new InvalidParameterException();

@@ -58,6 +58,7 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
         return bitmap.findLast1();
     }
 
+    @Override
     public boolean get(int index) {
         if (index >= size() || index < 0) {
             throw new IndexOutOfBoundsException();
