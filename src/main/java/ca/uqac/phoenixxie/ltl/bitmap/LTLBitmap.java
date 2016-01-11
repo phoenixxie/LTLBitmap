@@ -24,6 +24,10 @@ public class LTLBitmap {
                 return new EWAHBitmap();
             case ROARING:
                 return new RoaringBitmap();
+            case CONCISE:
+                return new ConciseBitmap();
+            case WAHCONCISE:
+                return new WAHConciseBitmap();
         }
         throw new InvalidParameterException();
     }
@@ -362,7 +366,9 @@ public class LTLBitmap {
     enum Type {
         RAW,
         EWAH,
-        ROARING
+        ROARING,
+        CONCISE,
+        WAHCONCISE
     }
 
     public interface BitmapIterator {

@@ -30,8 +30,17 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
         if (count <= 0) {
             return;
         }
+        int left = EWAHCompressedBitmap.WORD_IN_BITS - (bitmap.sizeInBits() % EWAHCompressedBitmap.WORD_IN_BITS);
+        for (int i = 0; i < left && i < count; ++i) {
+            add(bit);
+        }
+        count -= left;
+        if (count <= 0) {
+            return;
+        }
+
         int fullwords = count / EWAHCompressedBitmap.WORD_IN_BITS;
-        int left = count % EWAHCompressedBitmap.WORD_IN_BITS;
+        left = count % EWAHCompressedBitmap.WORD_IN_BITS;
         bitmap.addStreamOfEmptyWords(bit, fullwords);
         for (int i = 0; i < left; ++i) {
             add(bit);

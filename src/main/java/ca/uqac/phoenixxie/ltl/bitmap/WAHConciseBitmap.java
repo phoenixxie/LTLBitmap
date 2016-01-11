@@ -3,16 +3,16 @@ package ca.uqac.phoenixxie.ltl.bitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 
-public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
+public class WAHConciseBitmap implements LTLBitmap.BitmapAdapter {
     private ConciseSet bitmap;
     private int size;
 
-    public ConciseBitmap() {
-        bitmap = new ConciseSet(false);
+    public WAHConciseBitmap() {
+        bitmap = new ConciseSet(true);
         size = 0;
     }
 
-    private ConciseBitmap(ConciseSet bm, int size) {
+    private WAHConciseBitmap(ConciseSet bm, int size) {
         this.bitmap = bm;
         this.size = size;
     }
@@ -101,7 +101,7 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public LTLBitmap.BitmapAdapter opNot() {
-        ConciseBitmap bm = new ConciseBitmap(bitmap.complemented(), size);
+        WAHConciseBitmap bm = new WAHConciseBitmap(bitmap.complemented(), size);
 
         if (bitmap.last() < size - 1) {
             bm.bitmap.fill(bitmap.last() + 1, size - 1);
@@ -112,33 +112,33 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public LTLBitmap.BitmapAdapter opAnd(LTLBitmap.BitmapAdapter bm) {
-        return new ConciseBitmap(bitmap.intersection(((ConciseBitmap)bm).bitmap),
+        return new WAHConciseBitmap(bitmap.intersection(((WAHConciseBitmap)bm).bitmap),
                 Math.max(size, bm.size())
                 );
     }
 
     @Override
     public LTLBitmap.BitmapAdapter opOr(LTLBitmap.BitmapAdapter bm) {
-        return new ConciseBitmap(bitmap.union(((ConciseBitmap)bm).bitmap),
+        return new WAHConciseBitmap(bitmap.union(((WAHConciseBitmap)bm).bitmap),
                 Math.max(size, bm.size())
         );
     }
 
     @Override
     public LTLBitmap.BitmapAdapter opXor(LTLBitmap.BitmapAdapter bm) {
-        return new ConciseBitmap(bitmap.symmetricDifference(((ConciseBitmap)bm).bitmap),
+        return new WAHConciseBitmap(bitmap.symmetricDifference(((WAHConciseBitmap)bm).bitmap),
                 Math.max(size, bm.size())
         );
     }
 
     @Override
     public LTLBitmap.BitmapAdapter removeFirstBit() {
-        return new ConciseBitmap(bitmap.shiftLeft1Bit(), size - 1);
+        return new WAHConciseBitmap(bitmap.shiftLeft1Bit(), size - 1);
     }
 
     @Override
     public LTLBitmap.BitmapAdapter clone() {
-        return new ConciseBitmap(bitmap.clone(), size);
+        return new WAHConciseBitmap(bitmap.clone(), size);
     }
 
     @Override

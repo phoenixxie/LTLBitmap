@@ -74,7 +74,7 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.5.14-SNAPSHOT</version>
+            <version>0.5.16</version>
         </dependency>
         <dependency>
             <groupId>com.metamx</groupId>
