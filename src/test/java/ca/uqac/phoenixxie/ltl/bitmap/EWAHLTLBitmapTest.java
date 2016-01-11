@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class EWAHTLBitmapTest {
+public class EWAHLTLBitmapTest {
     @Test
     public void testOpNot() throws Exception {
         LTLBitmap left = newBm("10");

@@ -22,6 +22,8 @@ public class LTLBitmap {
                 return new RawBitmap();
             case EWAH:
                 return new EWAHBitmap();
+            case EWAH32:
+                return new EWAH32Bitmap();
             case ROARING:
                 return new RoaringBitmap();
             case CONCISE:
@@ -366,6 +368,7 @@ public class LTLBitmap {
     enum Type {
         RAW,
         EWAH,
+        EWAH32,
         ROARING,
         CONCISE,
         WAHCONCISE
