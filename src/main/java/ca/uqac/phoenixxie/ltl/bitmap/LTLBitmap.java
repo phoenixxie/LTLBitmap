@@ -102,130 +102,290 @@ public class LTLBitmap {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
         }
+
         BitmapAdapter left = this.bitmap;
         BitmapAdapter right = rightBm.bitmap;
-        int maxsize = Math.max(left.size(), right.size());
-        int minsize = Math.min(left.size(), right.size());
+        if (left.size() > right.size()) {
+            right.addMany(false, left.size() - right.size());
+        } else if (left.size() < right.size()) {
+            left.addMany(false, right.size() - left.size());
+        }
 
         BitmapIterator ita = left.begin();
         BitmapIterator itb = right.begin();
-        BitmapAdapter newBm = createAdapter(type);
+        BitmapAdapter answer = createAdapter(type);
 
-        boolean lastbit = false;
+        int pos = 0;
         while (!ita.isEnd() && !itb.isEnd()) {
-            int off;
-            lastbit = false;
             BitmapIterator ita1 = ita.find1();
             if (ita1 == null) {
-                break;
+                ita = null;
             }
-            if (ita1.index() >= minsize) {
+            BitmapIterator itb1 = itb.find1();
+            if (itb1 == null) {
+                itb = null;
+            }
+            if (ita == null || itb == null) {
                 break;
             }
 
-            off = ita1.index() - ita.index();
-            newBm.addMany(false, off);
-            ita = ita1;
-            if (itb.index() + off >= right.size()) {
-                break;
+            int near1 = Math.min(ita1.index(), itb1.index());
+            if (near1 > pos) {
+                int off = near1 - pos;
+                answer.addMany(false, off);
+                if (near1 == ita1.index()) {
+                    ita = ita1;
+                } else {
+                    ita.moveForward(off);
+                }
+                if (near1 == itb1.index()) {
+                    itb = itb1;
+                } else {
+                    itb.moveForward(off);
+                }
+                pos = near1;
+                continue;
             }
-            itb.moveForward(off);
 
-            BitmapIterator ita0 = ita.find0();
+            if (itb1.index() == pos) {
+                BitmapIterator itb0 = itb1.find0();
+                if (itb0 == null) {
+                    itb0 = right.end();
+                }
+
+                int off = itb0.index() - pos;
+                answer.addMany(true, off);
+                ita.moveForward(off);
+                itb = itb0;
+                pos = itb0.index();
+                continue;
+            }
+
+            BitmapIterator ita0 = ita1.find0();
             if (ita0 == null) {
                 ita0 = left.end();
             }
 
-            BitmapIterator itb1 = itb.find1();
-            if (itb1 == null) {
-                break;
-            }
-            if (itb1.index() >= minsize) {
-                break;
-            }
-            if (itb1.index() > ita0.index()) {
-                off = ita0.index() - ita.index();
-                newBm.addMany(false, off);
-                ita = ita0;
+            if (ita0.index() >= itb1.index()) {
+                int off = itb1.index() - pos + 1;
+                answer.addMany(true, off);
+                ita.moveForward(off);
                 itb.moveForward(off);
-                continue;
+                pos += off;
+            } else {
+                int off = ita0.index() - pos + 1;
+                answer.addMany(false, off);
+                ita.moveForward(off);
+                itb.moveForward(off);
+                pos += off;
             }
-
-            BitmapIterator itb0 = itb1.find0();
-            if (itb0 == null) {
-                itb0 = right.end();
-            }
-
-            off = itb0.index() - itb.index();
-            newBm.addMany(true, off);
-            lastbit = true;
-            if (itb0.index() >= minsize) {
-                if (itb0.isEnd()) {
-                    lastbit = true;
-                } else {
-                    lastbit = false;
-                }
-                break;
-            }
-            ita.moveForward(off);
-            itb = itb0;
         }
 
-        newBm.addMany(lastbit, maxsize - newBm.size());
+        if (itb == null) {
+            answer.addMany(false, left.size() - answer.size());
+        } else if (ita == null) {
+            pos = itb.index();
+            while (!itb.isEnd()) {
+                BitmapIterator itb1 = itb.find1();
+                if (itb1 == null) {
+                    answer.addMany(false, left.size() - answer.size());
+                    break;
+                }
+                if (itb1.index() > pos) {
+                    int off = itb1.index() - pos;
+                    answer.addMany(false, off);
+                    pos = itb1.index();
+                    itb = itb1;
+                    continue;
+                }
 
-        return new LTLBitmap(type, newBm);
+                BitmapIterator itb0 = itb1.find0();
+                if (itb0 == null) {
+                    answer.addMany(true, left.size() - answer.size());
+                    break;
+                }
+                if (itb0.index() > pos) {
+                    int off = itb0.index() - pos;
+                    answer.addMany(true, off);
+                    pos = itb0.index();
+                    itb = itb0;
+                }
+            }
+        }
+
+        assert answer.size() == left.size();
+        return new LTLBitmap(type, answer);
     }
 
     public LTLBitmap opWeakUntil(LTLBitmap rightBm) {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
         }
+
         BitmapAdapter left = this.bitmap;
         BitmapAdapter right = rightBm.bitmap;
-        int maxsize = Math.max(left.size(), right.size());
-        int minsize = Math.min(left.size(), right.size());
+        if (left.size() > right.size()) {
+            right.addMany(false, left.size() - right.size());
+        } else if (left.size() < right.size()) {
+            left.addMany(false, right.size() - left.size());
+        }
 
         BitmapIterator ita = left.begin();
         BitmapIterator itb = right.begin();
-        BitmapAdapter newBm = createAdapter(type);
+        BitmapAdapter answer = createAdapter(type);
 
-        boolean lastbit = false;
+        int pos = 0;
         while (!ita.isEnd() && !itb.isEnd()) {
-            int off;
-            lastbit = false;
             BitmapIterator ita1 = ita.find1();
             if (ita1 == null) {
+                ita = null;
+            }
+            BitmapIterator itb1 = itb.find1();
+            if (itb1 == null) {
+                itb = null;
+            }
+            if (ita == null || itb == null) {
                 break;
             }
-            if (ita1.index() >= minsize) {
-                break;
-            }
-            off = ita1.index() - ita.index();
-            newBm.addMany(false, off);
-            ita = ita1;
-            if (itb.index() + off >= right.size()) {
-                break;
-            }
-            itb.moveForward(off);
 
-            BitmapIterator ita0 = ita.find0();
-            if (ita0 == null) {
-                break;
+            int near1 = Math.min(ita1.index(), itb1.index());
+            if (near1 > pos) {
+                int off = near1 - pos;
+                answer.addMany(false, off);
+                if (near1 == ita1.index()) {
+                    ita = ita1;
+                } else {
+                    ita.moveForward(off);
+                }
+                if (near1 == itb1.index()) {
+                    itb = itb1;
+                } else {
+                    itb.moveForward(off);
+                }
+                pos = near1;
+                continue;
             }
+
+            if (itb1.index() == pos) {
+                BitmapIterator itb0 = itb1.find0();
+                if (itb0 == null) {
+                    itb0 = right.end();
+                }
+
+                int off = itb0.index() - pos;
+                answer.addMany(true, off);
+                ita.moveForward(off);
+                itb = itb0;
+                pos = itb0.index();
+                continue;
+            }
+
+            BitmapIterator ita0 = ita1.find0();
+            if (ita0 == null) {
+                ita0 = left.end();
+            }
+
+            if (ita0.index() >= itb1.index()) {
+                int off = itb1.index() - pos + 1;
+                answer.addMany(true, off);
+                ita.moveForward(off);
+                itb.moveForward(off);
+                pos += off;
+            } else {
+                int off = ita0.index() - pos + 1;
+                answer.addMany(false, off);
+                ita.moveForward(off);
+                itb.moveForward(off);
+                pos += off;
+            }
+        }
+
+        if (itb == null) {
+            if (ita == null) {
+                answer.addMany(false, left.size() - answer.size());
+            } else {
+                int last0 = left.last0();
+                if (last0 == -1 || last0 < ita.index()) {
+                    answer.addMany(true, left.size() - answer.size());
+                } else {
+                    answer.addMany(false, last0 - ita.index() + 1);
+                    answer.addMany(true, left.size() - answer.size());
+                }
+            }
+        } else if (ita == null) {
+            pos = itb.index();
+            while (!itb.isEnd()) {
+                BitmapIterator itb1 = itb.find1();
+                if (itb1 == null) {
+                    answer.addMany(false, left.size() - answer.size());
+                    break;
+                }
+                if (itb1.index() > pos) {
+                    int off = itb1.index() - pos;
+                    answer.addMany(false, off);
+                    pos = itb1.index();
+                    itb = itb1;
+                    continue;
+                }
+
+                BitmapIterator itb0 = itb1.find0();
+                if (itb0 == null) {
+                    answer.addMany(true, left.size() - answer.size());
+                    break;
+                }
+                if (itb0.index() > pos) {
+                    int off = itb0.index() - pos;
+                    answer.addMany(true, off);
+                    pos = itb0.index();
+                    itb = itb0;
+                }
+            }
+        }
+
+        assert answer.size() == left.size();
+        return new LTLBitmap(type, answer);
+    }
+
+    public LTLBitmap opRelease(LTLBitmap rightBm) {
+        if (type != rightBm.type) {
+            throw new InvalidParameterException();
+        }
+
+        BitmapAdapter left = this.bitmap;
+        BitmapAdapter right = rightBm.bitmap;
+        if (left.size() > right.size()) {
+            right.addMany(false, left.size() - right.size());
+        } else if (left.size() < right.size()) {
+            left.addMany(false, right.size() - left.size());
+        }
+
+        BitmapIterator ita = left.begin();
+        BitmapIterator itb = right.begin();
+        BitmapAdapter answer = createAdapter(type);
+
+        int pos = 0;
+        while (!ita.isEnd() && !itb.isEnd()) {
+            int off;
 
             BitmapIterator itb1 = itb.find1();
             if (itb1 == null) {
+                itb = null;
                 break;
             }
-            if (itb1.index() >= minsize) {
-                break;
-            }
-            if (itb1.index() > ita0.index()) {
-                off = ita0.index() - ita.index();
-                newBm.addMany(false, off);
-                ita = ita0;
-                itb.moveForward(off);
+
+            if (itb1.index() > pos) {
+                off = itb1.index() - pos;
+                answer.addMany(false, off);
+                ita.moveForward(off);
+                itb = itb1;
+                pos = itb1.index();
                 continue;
+            }
+
+            BitmapIterator ita1 = ita.find1();
+            if (ita1 == null) {
+                ita = null;
+                break;
             }
 
             BitmapIterator itb0 = itb1.find0();
@@ -233,44 +393,53 @@ public class LTLBitmap {
                 itb0 = right.end();
             }
 
-            off = itb0.index() - itb.index();
-            newBm.addMany(true, off);
-            lastbit = true;
-            if (itb0.index() >= minsize) {
-                ita = left.end();
-                if (itb0.isEnd()) {
-                    lastbit = true;
-                } else {
-                    lastbit = false;
-                }
-                break;
+            if (ita1.index() >= itb0.index()) {
+                off = itb0.index() - pos + 1;
+                answer.addMany(false, off);
+                ita.moveForward(off);
+                itb.moveForward(off);
+                pos += off;
+                continue;
             }
-            itb = itb0;
-            ita.moveForward(off);
+
+            BitmapIterator ita0 = ita1.find0();
+            if (ita0 == null) {
+                ita0 = left.end();
+            }
+
+            int near0 = Math.min(ita0.index(), itb0.index());
+            off = near0 - pos;
+            answer.addMany(true, off);
+            if (near0 == ita0.index()) {
+                ita = ita0;
+            } else {
+                ita.moveForward(off);
+            }
+            if (near0 == itb0.index()) {
+                itb = itb0;
+            } else {
+                itb.moveForward(off);
+            }
+            pos = near0;
         }
 
-        if (ita.isEnd()) {
-            newBm.addMany(lastbit, maxsize - newBm.size());
-            return new LTLBitmap(type, newBm);
-        }
-
-        if (lastbit) {
-            newBm.addMany(true, maxsize - newBm.size());
-            return new LTLBitmap(type, newBm);
-        }
-
-        int last0 = left.last0();
-        if (last0 == -1 || last0 < ita.index()) {
-            newBm.addMany(true, maxsize - newBm.size());
+        if (ita == null && itb != null) {
+            int last0 = right.last0();
+            if (last0 == -1 || last0 < itb.index()) {
+                answer.addMany(true, right.size() - answer.size());
+            } else {
+                answer.addMany(false, last0 - itb.index() + 1);
+                answer.addMany(true, right.size() - answer.size());
+            }
         } else {
-            newBm.addMany(false, last0 - ita.index() + 1);
-            newBm.addMany(true, maxsize - newBm.size());
+            answer.addMany(false, right.size() - answer.size());
         }
 
-        return new LTLBitmap(type, newBm);
+        assert answer.size() == left.size();
+        return new LTLBitmap(type, answer);
     }
 
-    public LTLBitmap opRelease(LTLBitmap rightBm) {
+    public LTLBitmap opRelease1(LTLBitmap rightBm) {
         if (type != rightBm.type) {
             throw new InvalidParameterException();
         }
