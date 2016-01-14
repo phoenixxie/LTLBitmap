@@ -1,6 +1,8 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
 import ca.uqac.phoenixxie.ltl.parser.LTLParser;
+import ca.uqac.phoenixxie.ltl.parser.LTLParser.PathResult;
+import sun.applet.Main;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,13 +29,16 @@ public class MainFrame extends JFrame {
     private JScrollPane jscrollPaneStates;
     private JScrollPane jscrollPaneFormulaes;
 
-    private ArrayList<LTLParser.StateResult> listStates = new ArrayList();
+    private ArrayList listStates = new ArrayList();
     private DefaultListModel<String> listModelState = new DefaultListModel();
 
-    private ArrayList<LTLParser.PathResult> listPath = new ArrayList();
+    private ArrayList<PathResult> listPath = new ArrayList();
     private DefaultListModel<String> listModelPath = new DefaultListModel();
 
     public MainFrame() {
+        setContentPane(MainFrame);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
         jlistStates.setModel(listModelState);
         jlistStates.setCellRenderer(new ListCellRenderer<String>() {
             public Component getListCellRendererComponent(JList list, String value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -112,7 +117,7 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 FormulaAddDialog dlg = new FormulaAddDialog();
                 dlg.setResultListener(new FormulaAddDialog.OnResultListener() {
-                    public void onResult(LTLParser.PathResult result) {
+                    public void onResult(PathResult result) {
                         listPath.add(result);
                         listModelPath.addElement(result.getExpr());
                     }
@@ -137,9 +142,7 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("MainFrame");
-        frame.setContentPane(new MainFrame().MainFrame);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        MainFrame frame = new MainFrame();
         frame.pack();
         frame.setLocationByPlatform(true);
         frame.setVisible(true);

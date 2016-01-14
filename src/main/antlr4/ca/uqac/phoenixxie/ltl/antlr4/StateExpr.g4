@@ -6,17 +6,13 @@ prog
 
 expr
     :   '(' expr ')'
-    |   (TRUE|FALSE)
-    |   (VAR|NUMBER) compOp (VAR|NUMBER)
+    |   VAR compOp NUMBER
     |   NOT expr
     |   expr boolOp expr
     ;
 
 compOp: NEQ|EQ|GT|LT|GTEQ|LTEQ;
 boolOp: AND|OR;
-
-TRUE: 'TRUE';
-FALSE: 'FALSE';
 
 NEQ: '!=';
 EQ: '=';
@@ -28,7 +24,7 @@ AND: '&&';
 OR: '||';
 NOT: '!';
 
-VAR: 'p';
+VAR: [a-z][a-z0-9]*;
 NUMBER: MINUS? [0-9]+;
 MINUS: '-';
 

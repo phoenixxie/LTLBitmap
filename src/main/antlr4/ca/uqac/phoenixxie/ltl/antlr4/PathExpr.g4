@@ -10,11 +10,8 @@ expr
     |   left=expr op=(UNTIL|RELEASE|WEAKLYUNTIL) right=expr
     |   left=expr op=(AND|OR) right=expr
     |   left=expr op=THEN right=expr
-    |   state=(TRUE|FALSE|STATE)
+    |   state=STATE
     ;
-
-TRUE : 'TRUE';
-FALSE  : 'FALSE';
 
 // propositional logic
 NOT: '!';
