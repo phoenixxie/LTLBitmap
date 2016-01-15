@@ -2,14 +2,16 @@ package ca.uqac.phoenixxie.ltl.ui;
 
 import ca.uqac.phoenixxie.ltl.parser.LTLParser;
 import ca.uqac.phoenixxie.ltl.parser.LTLParser.PathResult;
-import sun.applet.Main;
+import ca.uqac.phoenixxie.ltl.parser.LTLParser.StateResult;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.io.*;
 import java.util.ArrayList;
 
 public class MainFrame extends JFrame {
@@ -28,11 +30,15 @@ public class MainFrame extends JFrame {
     private JButton btnFormulaRemove;
     private JScrollPane jscrollPaneStates;
     private JScrollPane jscrollPaneFormulaes;
+    private JButton btnStateLoad;
+    private JButton btnFormulaLoad;
+    private JButton btnStateSave;
+    private JButton btnFormulaSave;
 
-    private ArrayList listStates = new ArrayList();
+    private ArrayList<StateResult> listStates = new ArrayList<StateResult>();
     private DefaultListModel<String> listModelState = new DefaultListModel();
 
-    private ArrayList<PathResult> listPath = new ArrayList();
+    private ArrayList<PathResult> listPath = new ArrayList<PathResult>();
     private DefaultListModel<String> listModelPath = new DefaultListModel();
 
     public MainFrame() {
@@ -90,7 +96,7 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 StateAddDialog dlg = new StateAddDialog();
                 dlg.setResultListener(new StateAddDialog.OnResultListener() {
-                    public void onResult(LTLParser.StateResult result) {
+                    public void onResult(StateResult result) {
                         listStates.add(result);
                         listModelState.addElement(result.getExpr());
                     }
@@ -110,6 +116,63 @@ public class MainFrame extends JFrame {
                 }
                 listStates.remove(index);
                 listModelState.remove(index);
+            }
+        });
+
+        btnStateSave.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser();
+                int ret = fc.showSaveDialog(MainFrame.this);
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                File file = fc.getSelectedFile();
+                try {
+                    FileWriter writer = new FileWriter(file);
+                    for (StateResult r : listStates) {
+                        writer.write(r.getExpr() + "\n");
+                    }
+                    writer.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        btnStateLoad.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser();
+                fc.setMultiSelectionEnabled(true);
+                int ret = fc.showOpenDialog(MainFrame.this);
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                File[] files = fc.getSelectedFiles();
+                for (File f : files) {
+                    try {
+                        FileReader reader = new FileReader(f);
+                        BufferedReader br = new BufferedReader(reader);
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            line = line.trim();
+                            if (line.isEmpty()) {
+                                continue;
+                            }
+
+                            StateResult result = LTLParser.parseState(line);
+                            if (result.isSuccess()) {
+                                listStates.add(result);
+                                listModelState.addElement(result.getExpr());
+                            }
+                        }
+                        br.close();
+                        reader.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
             }
         });
 
@@ -137,6 +200,63 @@ public class MainFrame extends JFrame {
                 }
                 listPath.remove(index);
                 listModelPath.remove(index);
+            }
+        });
+
+        btnFormulaSave.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser();
+                int ret = fc.showSaveDialog(MainFrame.this);
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                File file = fc.getSelectedFile();
+                try {
+                    FileWriter writer = new FileWriter(file);
+                    for (PathResult p : listPath) {
+                        writer.write(p.getExpr() + "\n");
+                    }
+                    writer.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        btnFormulaLoad.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser();
+                fc.setMultiSelectionEnabled(true);
+                int ret = fc.showOpenDialog(MainFrame.this);
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                File[] files = fc.getSelectedFiles();
+                for (File f : files) {
+                    try {
+                        FileReader reader = new FileReader(f);
+                        BufferedReader br = new BufferedReader(reader);
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            line = line.trim();
+                            if (line.isEmpty()) {
+                                continue;
+                            }
+
+                            PathResult result = LTLParser.parsePath(line);
+                            if (result.isSuccess()) {
+                                listPath.add(result);
+                                listModelPath.addElement(result.getExpr());
+                            }
+                        }
+                        br.close();
+                        reader.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
             }
         });
     }

@@ -225,13 +225,10 @@ public abstract class LTLBitmapTest {
     public void testEquivalence() {
         LTLBitmap left = newBm("101001010");
         LTLBitmap right = newBm("01011010111");
-        LTLBitmap answer = left.opUntil(right);
-        answer = answer.opNot();
+        LTLBitmap answer = left.opUntil(right).opNot();
         String s1 = answer.toString();
 
-        LTLBitmap answer1 = left.opNot();
-        LTLBitmap answer2 = right.opNot();
-        answer = answer1.opRelease(answer2);
+        answer = left.opNot().opRelease(right.opNot());
         String s2 = answer.toString();
 
         assertEquals("¬(φ U ψ) ≡ ¬φ R ¬ψ", s1, s2);

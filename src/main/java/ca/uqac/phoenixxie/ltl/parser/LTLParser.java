@@ -53,6 +53,8 @@ public class LTLParser {
     }
 
     public static StateResult parseState(String input) {
+        input = input.trim();
+
         ANTLRInputStream is = new ANTLRInputStream(input);
         ca.uqac.phoenixxie.ltl.antlr4.StateExprLexer lexer = new ca.uqac.phoenixxie.ltl.antlr4.StateExprLexer(is);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -80,6 +82,8 @@ public class LTLParser {
     }
 
     public static PathResult parsePath(String input) {
+        input = input.trim();
+
         ANTLRInputStream is = new ANTLRInputStream(input);
         ca.uqac.phoenixxie.ltl.antlr4.PathExprLexer lexer = new ca.uqac.phoenixxie.ltl.antlr4.PathExprLexer(is);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
