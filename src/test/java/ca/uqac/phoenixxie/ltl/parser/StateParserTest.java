@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 public class StateParserTest {
     @Test
     public void testParser() throws Exception {
-        StateParser.Result result = StateParser.parseState("a > 9 && b < 10");
+        StateParser.Result result = StateParser.parse("a > 9 && b < 10");
         StateParser.Expr expr = result.getStateExpr();
         HashMap<String, Integer> vals = new HashMap<String, Integer>();
 

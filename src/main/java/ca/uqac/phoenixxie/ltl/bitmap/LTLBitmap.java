@@ -11,6 +11,11 @@ public class LTLBitmap {
         this.bitmap = createAdapter(type);
     }
 
+    public LTLBitmap(Type type, String init) {
+        this(type);
+        add(init);
+    }
+
     private LTLBitmap(Type type, BitmapAdapter bm) {
         this.type = type;
         this.bitmap = bm;
@@ -439,7 +444,7 @@ public class LTLBitmap {
         return new LTLBitmap(type, answer);
     }
 
-    enum Type {
+    public enum Type {
         RAW,
         EWAH,
         EWAH32,

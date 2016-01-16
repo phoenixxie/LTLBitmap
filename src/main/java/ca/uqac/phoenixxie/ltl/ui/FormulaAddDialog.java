@@ -13,7 +13,7 @@ public class FormulaAddDialog extends JDialog {
     private JLabel labelMsg;
 
     public interface OnResultListener {
-        void onResult(LTLParser.PathResult result);
+        void onResult(LTLParser.Result result);
     }
 
     private OnResultListener listener = null;
@@ -57,7 +57,7 @@ public class FormulaAddDialog extends JDialog {
 
     private void onOK() {
         String text = textFieldFormula.getText();
-        LTLParser.PathResult result = LTLParser.parsePath(text);
+        LTLParser.Result result = LTLParser.parse(text);
         if (result.isSuccess()) {
             if (this.listener != null) {
                 this.listener.onResult(result);

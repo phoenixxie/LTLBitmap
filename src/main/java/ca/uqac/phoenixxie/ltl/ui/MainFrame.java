@@ -1,8 +1,7 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
 import ca.uqac.phoenixxie.ltl.parser.LTLParser;
-import ca.uqac.phoenixxie.ltl.parser.LTLParser.PathResult;
-import ca.uqac.phoenixxie.ltl.parser.LTLParser.StateResult;
+import ca.uqac.phoenixxie.ltl.parser.StateParser;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -35,10 +34,10 @@ public class MainFrame extends JFrame {
     private JButton btnStateSave;
     private JButton btnFormulaSave;
 
-    private ArrayList<StateResult> listStates = new ArrayList<StateResult>();
+    private ArrayList<StateParser.Result> listStates = new ArrayList<StateParser.Result>();
     private DefaultListModel<String> listModelState = new DefaultListModel();
 
-    private ArrayList<PathResult> listPath = new ArrayList<PathResult>();
+    private ArrayList<LTLParser.Result> listPath = new ArrayList<LTLParser.Result>();
     private DefaultListModel<String> listModelPath = new DefaultListModel();
 
     public MainFrame() {
@@ -96,7 +95,7 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 StateAddDialog dlg = new StateAddDialog();
                 dlg.setResultListener(new StateAddDialog.OnResultListener() {
-                    public void onResult(StateResult result) {
+                    public void onResult(StateParser.Result result) {
                         listStates.add(result);
                         listModelState.addElement(result.getExpr());
                     }
@@ -130,7 +129,7 @@ public class MainFrame extends JFrame {
                 File file = fc.getSelectedFile();
                 try {
                     FileWriter writer = new FileWriter(file);
-                    for (StateResult r : listStates) {
+                    for (StateParser.Result r : listStates) {
                         writer.write(r.getExpr() + "\n");
                     }
                     writer.close();
@@ -161,7 +160,7 @@ public class MainFrame extends JFrame {
                                 continue;
                             }
 
-                            StateResult result = LTLParser.parseState(line);
+                            StateParser.Result result = StateParser.parse(line);
                             if (result.isSuccess()) {
                                 listStates.add(result);
                                 listModelState.addElement(result.getExpr());
@@ -180,7 +179,7 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 FormulaAddDialog dlg = new FormulaAddDialog();
                 dlg.setResultListener(new FormulaAddDialog.OnResultListener() {
-                    public void onResult(PathResult result) {
+                    public void onResult(LTLParser.Result result) {
                         listPath.add(result);
                         listModelPath.addElement(result.getExpr());
                     }
@@ -214,7 +213,7 @@ public class MainFrame extends JFrame {
                 File file = fc.getSelectedFile();
                 try {
                     FileWriter writer = new FileWriter(file);
-                    for (PathResult p : listPath) {
+                    for (LTLParser.Result p : listPath) {
                         writer.write(p.getExpr() + "\n");
                     }
                     writer.close();
@@ -245,7 +244,7 @@ public class MainFrame extends JFrame {
                                 continue;
                             }
 
-                            PathResult result = LTLParser.parsePath(line);
+                            LTLParser.Result result = LTLParser.parse(line);
                             if (result.isSuccess()) {
                                 listPath.add(result);
                                 listModelPath.addElement(result.getExpr());

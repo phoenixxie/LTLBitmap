@@ -5,6 +5,8 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class StateParser {
@@ -98,6 +100,12 @@ public class StateParser {
     }
 
     private static class Vistor extends StateExprBaseVisitor<Expr> {
+        private HashSet<String> names = new HashSet<>();
+
+        public HashSet<String> getNames() {
+            return names;
+        }
+
         @Override
         public Expr visitProg(StateExprParser.ProgContext ctx) {
             return visit(ctx.expr());
@@ -121,6 +129,7 @@ public class StateParser {
                 default:
                     throw new NoSuchMethodError(ctx.compOp.getText());
             }
+            names.add(ctx.VAR().getText());
             return new CompareExpr(
                     ctx.VAR().getText(),
                     Integer.parseInt(ctx.NUMBER().getText()),
@@ -151,12 +160,12 @@ public class StateParser {
     public static class Result {
         boolean success;
         String expr;
-        StateExprParser.ProgContext tree;
         String errorMsg;
         Expr stateExpr;
+        HashSet<String> stateVars;
 
-        public ParseTree getTree() {
-            return tree;
+        public HashSet<String> getStateVars() {
+            return stateVars;
         }
 
         public String getErrorMsg() {
@@ -176,7 +185,7 @@ public class StateParser {
         }
     }
 
-    public static Result parseState(String input) {
+    public static Result parse(String input) {
         input = input.trim();
 
         ANTLRInputStream is = new ANTLRInputStream(input);
@@ -200,10 +209,10 @@ public class StateParser {
 
         Result ret = new Result();
         ret.expr = input;
-        ret.stateExpr = expr;
         ret.success = parser.getNumberOfSyntaxErrors() == 0;
-        ret.tree = tree;
         ret.errorMsg = sbErr.toString();
+        ret.stateExpr = expr;
+        ret.stateVars = vistor.getNames();
 
         return ret;
     }
