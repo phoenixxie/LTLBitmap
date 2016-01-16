@@ -5,14 +5,11 @@ prog
     ;
 
 expr
-    :   '(' expr ')'
-    |   VAR compOp NUMBER
-    |   NOT expr
-    |   expr boolOp expr
+    :   '(' expr ')'                               # parenExpr
+    |   VAR compOp=(NEQ|EQ|GT|LT|GTEQ|LTEQ) NUMBER # compExpr
+    |   NOT expr                                   # noExpr
+    |   expr boolOp=(AND|OR) expr                  # logic2Expr
     ;
-
-compOp: NEQ|EQ|GT|LT|GTEQ|LTEQ;
-boolOp: AND|OR;
 
 NEQ: '!=';
 EQ: '=';
