@@ -1,6 +1,6 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
-import ca.uqac.phoenixxie.ltl.parser.LTLParser;
+import ca.uqac.phoenixxie.ltl.analyze.LTLParser;
 
 import javax.swing.*;
 import java.awt.event.*;

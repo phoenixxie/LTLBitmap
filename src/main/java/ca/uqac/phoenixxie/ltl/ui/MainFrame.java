@@ -1,10 +1,10 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
-import ca.uqac.phoenixxie.ltl.parser.LTLParser;
-import ca.uqac.phoenixxie.ltl.parser.StateParser;
+import ca.uqac.phoenixxie.ltl.analyze.LTLParser;
+import ca.uqac.phoenixxie.ltl.analyze.State;
+import ca.uqac.phoenixxie.ltl.analyze.StateParser;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,7 +34,7 @@ public class MainFrame extends JFrame {
     private JButton btnStateSave;
     private JButton btnFormulaSave;
 
-    private ArrayList<StateParser.Result> listStates = new ArrayList<StateParser.Result>();
+    private ArrayList<State> listStates = new ArrayList<State>();
     private DefaultListModel<String> listModelState = new DefaultListModel();
 
     private ArrayList<LTLParser.Result> listPath = new ArrayList<LTLParser.Result>();
@@ -95,9 +95,9 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 StateAddDialog dlg = new StateAddDialog();
                 dlg.setResultListener(new StateAddDialog.OnResultListener() {
-                    public void onResult(StateParser.Result result) {
-                        listStates.add(result);
-                        listModelState.addElement(result.getExpr());
+                    public void onResult(State state) {
+                        listStates.add(state);
+                        listModelState.addElement(state.getExpr());
                     }
                 });
                 dlg.pack();
@@ -129,7 +129,7 @@ public class MainFrame extends JFrame {
                 File file = fc.getSelectedFile();
                 try {
                     FileWriter writer = new FileWriter(file);
-                    for (StateParser.Result r : listStates) {
+                    for (State r : listStates) {
                         writer.write(r.getExpr() + "\n");
                     }
                     writer.close();
@@ -160,10 +160,10 @@ public class MainFrame extends JFrame {
                                 continue;
                             }
 
-                            StateParser.Result result = StateParser.parse(line);
-                            if (result.isSuccess()) {
-                                listStates.add(result);
-                                listModelState.addElement(result.getExpr());
+                            State state = StateParser.parse(line, -1000, 1000);
+                            if (state.isSuccess()) {
+                                listStates.add(state);
+                                listModelState.addElement(state.getExpr());
                             }
                         }
                         br.close();

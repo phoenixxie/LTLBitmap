@@ -1,6 +1,7 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
-import ca.uqac.phoenixxie.ltl.parser.StateParser;
+import ca.uqac.phoenixxie.ltl.analyze.State;
+import ca.uqac.phoenixxie.ltl.analyze.StateParser;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -13,7 +14,7 @@ public class StateAddDialog extends JDialog {
     private JLabel labelMsg;
 
     public interface OnResultListener {
-        void onResult(StateParser.Result result);
+        void onResult(State state);
     }
 
     private OnResultListener listener = null;
@@ -58,14 +59,14 @@ public class StateAddDialog extends JDialog {
 
     private void onOK() {
         String text = textFieldState.getText();
-        StateParser.Result result = StateParser.parse(text);
-        if (result.isSuccess()) {
+        State state = StateParser.parse(text, -1000, 1000);
+        if (state.isSuccess()) {
             if (this.listener != null) {
-                this.listener.onResult(result);
+                this.listener.onResult(state);
             }
             dispose();
         } else {
-            String msg = result.getErrorMsg();
+            String msg = state.getErrorMsg();
             labelMsg.setText("Error: " + msg);
         }
     }

@@ -1,4 +1,4 @@
-package ca.uqac.phoenixxie.ltl.parser;
+package ca.uqac.phoenixxie.ltl.analyze;
 
 import ca.uqac.phoenixxie.ltl.bitmap.LTLBitmap;
 import org.junit.Test;
@@ -16,10 +16,10 @@ public class LTLParserTest {
                 new LTLBitmap(type, "00001"),
         };
 
-        String form = "s0 -> X s1";
+        String form = "s0 R s1";
         LTLParser.Result result = LTLParser.parse(form);
         LTLBitmap bm = result.ltlExpr.getResult(states);
 
-        System.out.println(bm.toString());
+        assertEquals("00001", bm.toString());
     }
 }

@@ -1,13 +1,9 @@
-package ca.uqac.phoenixxie.ltl.parser;
+package ca.uqac.phoenixxie.ltl.analyze;
 
 import ca.uqac.phoenixxie.ltl.antlr4.LTLExprBaseVisitor;
-import ca.uqac.phoenixxie.ltl.antlr4.LTLExprLexer;
 import ca.uqac.phoenixxie.ltl.antlr4.LTLExprParser;
 import ca.uqac.phoenixxie.ltl.bitmap.LTLBitmap;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.ParseTree;
-
-import java.util.HashMap;
 
 public class LTLParser {
 
