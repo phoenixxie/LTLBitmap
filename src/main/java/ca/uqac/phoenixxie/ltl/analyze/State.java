@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class State {
+    public static int MIN = -10000;
+    public static int MAX = 10000;
+
     enum ExprType {
         COMPARE,
         LOGIC

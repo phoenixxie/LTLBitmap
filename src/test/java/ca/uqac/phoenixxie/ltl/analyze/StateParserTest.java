@@ -8,7 +8,7 @@ public class StateParserTest {
 
     @Test
     public void testParser() throws Exception {
-        State state = StateParser.parse("a > 10 && b < 0", -1000, 1000);
+        State state = StateParser.parse("a > 10 && b < 0");
         State.Expr expr = state.getStateExpr();
         HashMap<String, Integer> vals = new HashMap<String, Integer>();
 

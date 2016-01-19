@@ -62,7 +62,7 @@
           <component id="1033f" class="javax.swing.JLabel">
             <constraints border-constraint="North"/>
             <properties>
-              <text value="&lt;html&gt; Write a state here,&lt;br&gt; Variable name: p&lt;br&gt; Operators: (, ), =, !=, &gt;, &gt;=, &amp;&amp;lt;, &amp;&amp;lt;=, !, &amp;&amp;amp;&amp;&amp;amp;, ||&lt;br&gt; e.g. (p &gt; 9) &amp;&amp;amp;&amp;&amp;amp; (p &amp;&amp;&amp;lt;= 100)&lt;br&gt; &lt;/html&gt;"/>
+              <text value="&lt;html&gt; Write a state here,&lt;br&gt; Variable name: characters and numbers, e.g. a0, b1&lt;br&gt; Operators: (, ), =, !=, &gt;, &gt;=, &amp;&amp;lt;, &amp;&amp;lt;=, !, &amp;&amp;amp;&amp;&amp;amp;, ||&lt;br&gt; e.g. (p &gt; 9) &amp;&amp;amp;&amp;&amp;amp; (p &amp;&amp;&amp;lt;= 100)&lt;br&gt; &lt;/html&gt;"/>
             </properties>
             <clientProperties>
               <html.disable class="java.lang.Boolean" value="false"/>

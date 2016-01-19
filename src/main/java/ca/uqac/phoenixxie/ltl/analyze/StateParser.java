@@ -3,6 +3,7 @@ package ca.uqac.phoenixxie.ltl.analyze;
 import ca.uqac.phoenixxie.ltl.antlr4.*;
 import org.antlr.v4.runtime.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
@@ -15,7 +16,9 @@ public class StateParser {
         public HashMap<String, Integer[]> getVars() {
             HashMap<String, Integer[]> ret = new HashMap<>();
             for(HashMap.Entry<String, HashSet<Integer>> entry : vars.entrySet()) {
-                ret.put(entry.getKey(), entry.getValue().toArray(new Integer[entry.getValue().size()]));
+                Integer[] arr = entry.getValue().toArray(new Integer[entry.getValue().size()]);
+                Arrays.sort(arr);
+                ret.put(entry.getKey(), arr);
             }
             return ret;
         }
@@ -111,7 +114,7 @@ public class StateParser {
         }
     }
 
-    public static State parse(String input, int min, int max) {
+    public static State parse(String input) {
         input = input.trim();
 
         ANTLRInputStream is = new ANTLRInputStream(input);
@@ -139,7 +142,7 @@ public class StateParser {
         state.errorMsg = sbErr.toString();
         state.stateExpr = expr;
         state.variables = vistor.getVars();
-        StateAnalyzer.splitRange(state, min, max);
+        StateAnalyzer.splitRange(state, State.MIN, State.MAX);
 
         return state;
     }

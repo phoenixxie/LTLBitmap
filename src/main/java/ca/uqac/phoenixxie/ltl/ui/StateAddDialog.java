@@ -59,7 +59,7 @@ public class StateAddDialog extends JDialog {
 
     private void onOK() {
         String text = textFieldState.getText();
-        State state = StateParser.parse(text, -1000, 1000);
+        State state = StateParser.parse(text);
         if (state.isSuccess()) {
             if (this.listener != null) {
                 this.listener.onResult(state);
