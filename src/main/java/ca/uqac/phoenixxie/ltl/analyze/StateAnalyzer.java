@@ -1,14 +1,8 @@
 package ca.uqac.phoenixxie.ltl.analyze;
 
-import ca.uqac.phoenixxie.ltl.analyze.StateParser;
-
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class StateAnalyzer {
-    public static int generateRandomWithinRange(int from, int to) {
-        return ThreadLocalRandom.current().nextInt(to - from) + from;
-    }
 
     public static void splitRange(State state, int min, int max) {
         String[] keys = state.variables.keySet().toArray(new String[state.variables.size()]);
@@ -43,7 +37,7 @@ public class StateAnalyzer {
             if (s < keys.length) {
                 for (int i = s; i < keys.length; ++i) {
                     stack.push(0);
-                    input.put(keys[i], generateRandomWithinRange(ranges[i][0][0], ranges[i][0][1]));
+                    input.put(keys[i], Utils.generateRandomWithinRange(ranges[i][0][0], ranges[i][0][1]));
                 }
             }
 
@@ -61,7 +55,7 @@ public class StateAnalyzer {
                 int size = ranges[idx].length;
 
                 if (last < size) {
-                    input.put(keys[idx], generateRandomWithinRange(ranges[idx][last][0], ranges[idx][last][1]));
+                    input.put(keys[idx], Utils.generateRandomWithinRange(ranges[idx][last][0], ranges[idx][last][1]));
                     stack.push(last);
                     break;
                 } else {

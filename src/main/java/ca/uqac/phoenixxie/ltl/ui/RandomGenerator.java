@@ -2,6 +2,7 @@ package ca.uqac.phoenixxie.ltl.ui;
 
 import ca.uqac.phoenixxie.ltl.analyze.State;
 import ca.uqac.phoenixxie.ltl.analyze.StateParser;
+import ca.uqac.phoenixxie.ltl.analyze.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -169,6 +170,23 @@ public class RandomGenerator extends JFrame {
                 if (filepath.isEmpty()) {
                     btnOutputFile.doClick();
                     return;
+                }
+
+                if (variables.isEmpty()) {
+                    return;
+                }
+
+                int count = Integer.parseInt(textEventCount.getText());
+                if (count <= 0) {
+                    return;
+                }
+
+                try {
+                    FileWriter writer = new FileWriter(filepath);
+                    Utils.generateRandom(writer, variables.size(), count);
+                    writer.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
         });
