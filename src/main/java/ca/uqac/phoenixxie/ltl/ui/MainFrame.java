@@ -3,6 +3,7 @@ package ca.uqac.phoenixxie.ltl.ui;
 import ca.uqac.phoenixxie.ltl.analyze.LTLParser;
 import ca.uqac.phoenixxie.ltl.analyze.State;
 import ca.uqac.phoenixxie.ltl.analyze.StateParser;
+import ca.uqac.phoenixxie.ltl.analyze.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
 
 public class MainFrame extends JFrame {
 
@@ -22,7 +23,6 @@ public class MainFrame extends JFrame {
     private JTextField textEventMinVal;
     private JTextField textEventMaxVal;
     private JButton btnGenerate;
-    private JTextArea textAreaConsole;
     private JButton btnStateAdd;
     private JButton btnStateRemove;
     private JButton btnFormulaAdd;
@@ -33,12 +33,16 @@ public class MainFrame extends JFrame {
     private JButton btnFormulaLoad;
     private JButton btnStateSave;
     private JButton btnFormulaSave;
+    private JTextField textOutputFile;
+    private JButton btnOutputFile;
+    private JTextPane textPanelVars;
 
     private ArrayList<State> listStates = new ArrayList<State>();
     private DefaultListModel<String> listModelState = new DefaultListModel();
+    private HashMap<String, HashSet<Integer>> variables = new HashMap<>();
 
-    private ArrayList<LTLParser.Result> listPath = new ArrayList<LTLParser.Result>();
-    private DefaultListModel<String> listModelPath = new DefaultListModel();
+    private ArrayList<LTLParser.Result> listFormulas = new ArrayList<LTLParser.Result>();
+    private DefaultListModel<String> listModelFormula = new DefaultListModel();
 
     public MainFrame() {
         setContentPane(MainFrame);
@@ -62,7 +66,7 @@ public class MainFrame extends JFrame {
             }
         });
 
-        jlistFormulas.setModel(listModelPath);
+        jlistFormulas.setModel(listModelFormula);
         jlistFormulas.setCellRenderer(new ListCellRenderer<String>() {
             public Component getListCellRendererComponent(JList list, String value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = new JLabel("f" + index + ": " + value);
@@ -98,6 +102,7 @@ public class MainFrame extends JFrame {
                     public void onResult(State state) {
                         listStates.add(state);
                         listModelState.addElement(state.getExpr());
+                        updateVariables();
                     }
                 });
                 dlg.pack();
@@ -115,6 +120,7 @@ public class MainFrame extends JFrame {
                 }
                 listStates.remove(index);
                 listModelState.remove(index);
+                updateVariables();
             }
         });
 
@@ -172,6 +178,7 @@ public class MainFrame extends JFrame {
                         e1.printStackTrace();
                     }
                 }
+                updateVariables();
             }
         });
 
@@ -180,8 +187,8 @@ public class MainFrame extends JFrame {
                 FormulaAddDialog dlg = new FormulaAddDialog();
                 dlg.setResultListener(new FormulaAddDialog.OnResultListener() {
                     public void onResult(LTLParser.Result result) {
-                        listPath.add(result);
-                        listModelPath.addElement(result.getExpr());
+                        listFormulas.add(result);
+                        listModelFormula.addElement(result.getExpr());
                     }
                 });
                 dlg.pack();
@@ -197,8 +204,8 @@ public class MainFrame extends JFrame {
                 if (index == -1) {
                     return;
                 }
-                listPath.remove(index);
-                listModelPath.remove(index);
+                listFormulas.remove(index);
+                listModelFormula.remove(index);
             }
         });
 
@@ -213,7 +220,7 @@ public class MainFrame extends JFrame {
                 File file = fc.getSelectedFile();
                 try {
                     FileWriter writer = new FileWriter(file);
-                    for (LTLParser.Result p : listPath) {
+                    for (LTLParser.Result p : listFormulas) {
                         writer.write(p.getExpr() + "\n");
                     }
                     writer.close();
@@ -246,8 +253,8 @@ public class MainFrame extends JFrame {
 
                             LTLParser.Result result = LTLParser.parse(line);
                             if (result.isSuccess()) {
-                                listPath.add(result);
-                                listModelPath.addElement(result.getExpr());
+                                listFormulas.add(result);
+                                listModelFormula.addElement(result.getExpr());
                             }
                         }
                         br.close();
@@ -258,6 +265,81 @@ public class MainFrame extends JFrame {
                 }
             }
         });
+
+        btnOutputFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser();
+                int ret = fc.showSaveDialog(MainFrame.this);
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                textOutputFile.setText(fc.getSelectedFile().getPath());
+            }
+        });
+
+        btnGenerate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String filepath = textOutputFile.getText();
+                if (filepath.isEmpty()) {
+                    btnOutputFile.doClick();
+                    return;
+                }
+
+                if (variables.isEmpty()) {
+                    return;
+                }
+
+                int count = Integer.parseInt(textEventCount.getText());
+                if (count <= 0) {
+                    return;
+                }
+
+                int min = Integer.parseInt(textEventMinVal.getText());
+                int max = Integer.parseInt(textEventMaxVal.getText());
+                if (min > max) {
+                    textEventMaxVal.setText("");
+                    textEventMinVal.setText("");
+                    return;
+                }
+
+                Utils.generateRandom(filepath, variables.keySet(), count, min, max);
+            }
+        });
+    }
+
+    private void updateVariables() {
+        variables.clear();
+        for (State state : listStates) {
+            for (Map.Entry<String, Integer[]> var : state.getVariables().entrySet()) {
+                if (variables.containsKey(var.getKey())) {
+                    variables.get(var.getKey()).addAll(Arrays.asList(var.getValue()));
+                } else {
+                    variables.put(var.getKey(), new HashSet<Integer>(Arrays.asList(var.getValue())));
+                }
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, HashSet<Integer>> var : variables.entrySet()) {
+            sb.append(var.getKey()).append(": ");
+
+            Integer[] arr = var.getValue().toArray(new Integer[var.getValue().size()]);
+            Arrays.sort(arr);
+
+            for (int i = 0; i < arr.length; ++i) {
+                if (i == 0) {
+                    sb.append("(min").append(", ").append(arr[i]).append(")");
+                } else {
+                    sb.append(", [").append(arr[i - 1]).append(", ").append(arr[i]).append(")");
+                }
+            }
+            sb.append(", [").append(arr[arr.length - 1]).append(", ").append("max)");
+
+            sb.append("\n");
+        }
+        textPanelVars.setText(sb.toString());
     }
 
     public static void main(String[] args) {

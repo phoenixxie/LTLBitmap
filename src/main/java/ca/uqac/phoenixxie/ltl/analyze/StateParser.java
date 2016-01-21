@@ -142,7 +142,6 @@ public class StateParser {
         state.errorMsg = sbErr.toString();
         state.stateExpr = expr;
         state.variables = vistor.getVars();
-        StateAnalyzer.splitRange(state, State.MIN, State.MAX);
 
         return state;
     }

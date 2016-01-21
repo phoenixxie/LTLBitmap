@@ -1,5 +1,7 @@
 package ca.uqac.phoenixxie.ltl.analyze;
 
+import ca.uqac.phoenixxie.ltl.bitmap.LTLBitmap;
+
 import java.util.*;
 
 public class StateAnalyzer {
@@ -68,8 +70,8 @@ public class StateAnalyzer {
             }
         }
 
-        state.trueGroup = trueGroup;
-        state.falseGroup = falseGroup;
+//        state.trueGroup = trueGroup;
+//        state.falseGroup = falseGroup;
 
 //        System.out.println("True:");
 //        for (HashMap<String, int[]> h : trueGroup) {
@@ -87,4 +89,5 @@ public class StateAnalyzer {
 //            System.out.println();
 //        }
     }
+
 }

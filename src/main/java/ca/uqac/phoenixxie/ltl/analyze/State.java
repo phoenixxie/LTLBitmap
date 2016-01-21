@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class State {
-    public static int MIN = -10000;
-    public static int MAX = 10000;
-
     enum ExprType {
         COMPARE,
         LOGIC
@@ -27,8 +24,6 @@ public class State {
     String errorMsg;
     Expr stateExpr;
     HashMap<String, Integer[]> variables;
-    List<HashMap<String, int[]>> trueGroup;
-    List<HashMap<String, int[]>> falseGroup;
 
     public HashMap<String, Integer[]> getVariables() {
         return variables;
