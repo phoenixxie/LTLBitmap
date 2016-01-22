@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class LTLParserTest {
+public class FormulaParserTest {
 
     @Test
     public void testParser() throws Exception {
@@ -17,7 +17,7 @@ public class LTLParserTest {
         };
 
         String form = "s0 R s1";
-        LTLParser.Result result = LTLParser.parse(form);
+        Formula result = FormulaParser.parse(form);
         LTLBitmap bm = result.ltlExpr.getResult(states);
 
         assertEquals("00001", bm.toString());

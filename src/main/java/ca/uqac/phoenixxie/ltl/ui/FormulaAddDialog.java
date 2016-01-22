@@ -1,6 +1,6 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
-import ca.uqac.phoenixxie.ltl.analyze.LTLParser;
+import ca.uqac.phoenixxie.ltl.analyze.FormulaParser;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -13,7 +13,7 @@ public class FormulaAddDialog extends JDialog {
     private JLabel labelMsg;
 
     public interface OnResultListener {
-        void onResult(LTLParser.Result result);
+        void onResult(FormulaParser.Result result);
     }
 
     private OnResultListener listener = null;
@@ -57,7 +57,7 @@ public class FormulaAddDialog extends JDialog {
 
     private void onOK() {
         String text = textFieldFormula.getText();
-        LTLParser.Result result = LTLParser.parse(text);
+        FormulaParser.Result result = FormulaParser.parse(text);
         if (result.isSuccess()) {
             if (this.listener != null) {
                 this.listener.onResult(result);
