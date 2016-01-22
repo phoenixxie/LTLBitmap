@@ -6,26 +6,179 @@ import java.io.*;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.SynchronousQueue;
 
 public class LTLVerification {
+
+    public static void main(String[] args) {
+        Option option;
+        try {
+            option = Option.parse(args);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+            return;
+        } catch (Exception e) {
+            Option.usage();
+            e.printStackTrace();
+
+            System.exit(1);
+            return;
+        }
+
+        System.out.println("State file: " + option.states.getPath());
+        System.out.println("Formula file: " + option.formulas.getPath());
+        System.out.println("Event file: " + option.events.getPath());
+        System.out.println("Bitmap type: " + option.bmtype.toString());
+
+        ArrayList<State> states = new ArrayList<>();
+        HashSet<String> variables = new HashSet<>();
+
+        try {
+            FileInputStream fstream = new FileInputStream(option.states);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+            String strLine;
+
+            while ((strLine = br.readLine()) != null) {
+                State state = StateParser.parse(strLine);
+                if (!state.isSuccess()) {
+                    System.err.println("Parse state error: " + strLine);
+                    System.err.println(state.getErrorMsg());
+                    System.exit(1);
+                }
+                variables.addAll(state.getVariables().keySet());
+                states.add(state);
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("Got " + states.size() + " states including " + variables.size() + " variables");
+
+        ArrayList<Formula> formulas = new ArrayList<>();
+        int maxStateID = -1;
+        try {
+            FileInputStream fstream = new FileInputStream(option.formulas);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+            String strLine;
+
+            while ((strLine = br.readLine()) != null) {
+                Formula formula = FormulaParser.parse(strLine);
+                if (!formula.isSuccess()) {
+                    System.err.println("Parse formula error: " + strLine);
+                    System.err.println(formula.getErrorMsg());
+                    System.exit(1);
+                }
+                maxStateID = (maxStateID < formula.getMaxStateID() ? formula.getMaxStateID() : maxStateID);
+                formulas.add(formula);
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (maxStateID >= states.size()) {
+            System.err.println("Unmatched numbers of states in file and states in formulas: " + maxStateID + ">=" + states.size());
+            System.exit(1);
+        }
+        System.out.println("Got " + formulas.size() + " formulas");
+
+        HashMap<String, Integer> vars = new HashMap<>();
+        LTLBitmap[] bitmaps = new LTLBitmap[states.size()];
+        for (int i = 0; i < bitmaps.length; ++i) {
+            bitmaps[i] = new LTLBitmap(option.bmtype);
+        }
+
+        int linecnt = 0;
+        try {
+            FileInputStream fstream = new FileInputStream(option.events);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+            String strLine;
+
+            boolean firstLine = true;
+            String[] varNames = new String[0];
+            while ((strLine = br.readLine()) != null) {
+                ++linecnt;
+                strLine = strLine.trim();
+                if (strLine.isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = strLine.split(",");
+                if (firstLine) {
+                    varNames = parts;
+                    firstLine = false;
+                    continue;
+                }
+
+                if (parts.length != varNames.length) {
+                    throw new InvalidParameterException("#" + linecnt + ":" + strLine);
+                }
+
+                for (int i = 0; i < parts.length; ++i) {
+                    vars.put(varNames[i], Integer.parseInt(parts[i]));
+                }
+
+                for (int i = 0; i < states.size(); ++i) {
+                    bitmaps[i].add(states.get(i).getStateExpr().getResult(vars));
+                }
+            }
+            br.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        if (!vars.keySet().containsAll(variables)) {
+            System.err.println("The variables in the states should be the subset of the ones from the event file");
+            System.exit(1);
+        }
+
+        System.out.println("Read " + (linecnt - 1) + " lines of events");
+        printStat(bitmaps);
+
+        LTLBitmap[] results = new LTLBitmap[formulas.size()];
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < results.length; ++i) {
+            results[i] = formulas.get(i).getLtlExpr().getResult(bitmaps);
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.printf("Got the result, used %.4f seconds\n", (float)(end - start) / 1000f);
+        printStat(results);
+    }
+
+    private static void printStat(LTLBitmap[] bms) {
+        int bits = 0;
+        int bytes = 0;
+
+        for (LTLBitmap bm : bms) {
+            bits += bm.sizeInBits();
+            bytes += bm.sizeInRealBytes();
+        }
+
+        System.out.println("Bit count: " + bits);
+        System.out.println("Used byte count: " + bytes);
+        System.out.printf("Compression ratio: %.2f%%\n", ((float)bytes * 8f * 100f / (float)bits));
+    }
 
     private static class Option {
         private File states = null;
         private File formulas = null;
         private File events = null;
         private LTLBitmap.Type bmtype = null;
-
-        public File getStates() {
-            return states;
-        }
-
-        public File getFormulas() {
-            return formulas;
-        }
-
-        public File getEvents() {
-            return events;
-        }
 
         public static void usage() {
             System.out.println("Options:");
@@ -57,39 +210,50 @@ public class LTLVerification {
                     throw new IndexOutOfBoundsException();
                 }
                 ++i;
-                arg = args[i];
+                String para = args[i];
 
                 switch (arg) {
                     case "state":
-                        File fs = new File(arg);
+                        File fs = new File(para);
                         if (!fs.exists() || !fs.canRead()) {
-                            throw new FileNotFoundException(arg);
+                            throw new FileNotFoundException(para);
                         }
                         op.states = fs;
                         break;
                     case "formula":
-                        File ff = new File(arg);
+                        File ff = new File(para);
                         if (!ff.exists() || !ff.canRead()) {
-                            throw new FileNotFoundException(arg);
+                            throw new FileNotFoundException(para);
                         }
                         op.formulas = ff;
                         break;
                     case "event":
-                        File fe = new File(arg);
+                        File fe = new File(para);
                         if (!fe.exists() || !fe.canRead()) {
-                            throw new FileNotFoundException(arg);
+                            throw new FileNotFoundException(para);
                         }
                         op.events = fe;
                         break;
-                    case "bmtype":
-                    {
-                        switch (arg.toLowerCase()) {
-                            case "raw": op.bmtype = LTLBitmap.Type.RAW; break;
-                            case "wah": op.bmtype = LTLBitmap.Type.WAHCONCISE; break;
-                            case "ewah64": op.bmtype = LTLBitmap.Type.EWAH; break;
-                            case "ewah32": op.bmtype = LTLBitmap.Type.EWAH32; break;
-                            case "concise": op.bmtype = LTLBitmap.Type.CONCISE; break;
-                            case "roaring": op.bmtype = LTLBitmap.Type.ROARING; break;
+                    case "bmtype": {
+                        switch (para.toLowerCase()) {
+                            case "raw":
+                                op.bmtype = LTLBitmap.Type.RAW;
+                                break;
+                            case "wah":
+                                op.bmtype = LTLBitmap.Type.WAHCONCISE;
+                                break;
+                            case "ewah64":
+                                op.bmtype = LTLBitmap.Type.EWAH;
+                                break;
+                            case "ewah32":
+                                op.bmtype = LTLBitmap.Type.EWAH32;
+                                break;
+                            case "concise":
+                                op.bmtype = LTLBitmap.Type.CONCISE;
+                                break;
+                            case "roaring":
+                                op.bmtype = LTLBitmap.Type.ROARING;
+                                break;
                             default:
                                 throw new InvalidParameterException();
                         }
@@ -104,110 +268,17 @@ public class LTLVerification {
                 throw new InvalidParameterException();
             }
         }
-    }
 
-    public static void main(String[] args) {
-        Option option;
-        try {
-            option = Option.parse(args);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.exit(1);
-            return;
-        } catch (Exception e) {
-            Option.usage();
-            System.exit(1);
-            return;
+        public File getStates() {
+            return states;
         }
 
-        ArrayList<State> states = new ArrayList<>();
-        ArrayList<Formula> formulas = new ArrayList<>();
-
-        try {
-            FileInputStream fstream = new FileInputStream(option.states);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-            String strLine;
-
-            while ((strLine = br.readLine()) != null) {
-                states.add(StateParser.parse(strLine));
-            }
-
-            br.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
+        public File getFormulas() {
+            return formulas;
         }
 
-        try {
-            FileInputStream fstream = new FileInputStream(option.formulas);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-            String strLine;
-
-            while ((strLine = br.readLine()) != null) {
-                formulas.add(FormulaParser.parse(strLine));
-            }
-
-            br.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        HashMap<String, Integer> vars = new HashMap<>();
-        LTLBitmap[] bitmaps = new LTLBitmap[states.size()];
-        for (int i = 0; i < bitmaps.length; ++i) {
-            bitmaps[i] = new LTLBitmap(option.bmtype);
-        }
-
-        try {
-            FileInputStream fstream = new FileInputStream(option.events);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-            String strLine;
-
-            boolean firstLine = true;
-            String[] varNames = new String[0];
-            int n = 0;
-            while ((strLine = br.readLine()) != null) {
-                ++n;
-                strLine = strLine.trim();
-                if (strLine.isEmpty()) {
-                    continue;
-                }
-
-                String[] parts = strLine.split(",");
-                if (firstLine) {
-                    varNames = parts;
-                    firstLine = false;
-                    continue;
-                }
-
-                if (parts.length != varNames.length) {
-                    throw new InvalidParameterException("#" + n + ":" + strLine);
-                }
-
-                for (int i = 0; i < parts.length; ++i) {
-                    vars.put(varNames[i], Integer.parseInt(parts[i]));
-                }
-
-                for (int i = 0; i < states.size(); ++i) {
-                    bitmaps[i].add(states.get(i).getStateExpr().getResult(vars));
-                }
-            }
-
-            br.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        LTLBitmap[] results = new LTLBitmap[formulas.size()];
-        for (int i = 0; i < results.length; ++i) {
-            results[i] = formulas.get(i).getLtlExpr().getResult(bitmaps);
+        public File getEvents() {
+            return events;
         }
     }
 }

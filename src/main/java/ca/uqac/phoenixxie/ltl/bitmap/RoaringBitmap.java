@@ -67,6 +67,11 @@ public class RoaringBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int getRealSize() {
+        return bitmap.getSizeInBytes();
+    }
+
+    @Override
     public boolean firstBit() {
         return get(0);
     }

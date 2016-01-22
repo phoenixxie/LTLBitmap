@@ -48,6 +48,11 @@ public class WAHConciseBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int getRealSize() {
+        return bitmap.getRealSize();
+    }
+
+    @Override
     public String toString() {
         StringBuilder answer = new StringBuilder();
         IntSet.IntIterator i = bitmap.iterator();

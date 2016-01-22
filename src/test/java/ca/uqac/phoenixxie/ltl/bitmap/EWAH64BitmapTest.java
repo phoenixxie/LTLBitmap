@@ -4,10 +4,10 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class EWAHBitmapTest {
+public class EWAH64BitmapTest {
     @Test
     public void testBasic() throws Exception {
-        EWAHBitmap bitmap = new EWAHBitmap();
+        EWAH64Bitmap bitmap = new EWAH64Bitmap();
         bitmap.add(false);
         bitmap.add(true);
         bitmap.add(false);
@@ -36,7 +36,7 @@ public class EWAHBitmapTest {
 
     @Test
     public void testLastBit() throws Exception {
-        EWAHBitmap bitmap = new EWAHBitmap();
+        EWAH64Bitmap bitmap = new EWAH64Bitmap();
         bitmap.addMany(true, 100);
         assertEquals("1", -1, bitmap.last0());
         assertEquals("2", 99, bitmap.last1());
@@ -53,7 +53,7 @@ public class EWAHBitmapTest {
 
     @Test
     public void testRemoveFirstBit() throws Exception {
-        EWAHBitmap bitmap = new EWAHBitmap();
+        EWAH64Bitmap bitmap = new EWAH64Bitmap();
         bitmap.add(true);
         LTLBitmap.BitmapAdapter bm = bitmap.removeFirstBit();
         assertEquals("1", 0, bm.size());
@@ -75,8 +75,8 @@ public class EWAHBitmapTest {
 
     @Test
     public void testOpAnd() throws Exception {
-        EWAHBitmap bm1 = new EWAHBitmap();
-        EWAHBitmap bm2 = new EWAHBitmap();
+        EWAH64Bitmap bm1 = new EWAH64Bitmap();
+        EWAH64Bitmap bm2 = new EWAH64Bitmap();
 
         bm1.add(true);
         bm1.add(false);
@@ -94,8 +94,8 @@ public class EWAHBitmapTest {
 
     @Test
     public void testOpOr() throws Exception {
-        EWAHBitmap bm1 = new EWAHBitmap();
-        EWAHBitmap bm2 = new EWAHBitmap();
+        EWAH64Bitmap bm1 = new EWAH64Bitmap();
+        EWAH64Bitmap bm2 = new EWAH64Bitmap();
 
         bm1.add(true);
         bm1.add(false);
@@ -113,8 +113,8 @@ public class EWAHBitmapTest {
 
     @Test
     public void testOpXor() throws Exception {
-        EWAHBitmap bm1 = new EWAHBitmap();
-        EWAHBitmap bm2 = new EWAHBitmap();
+        EWAH64Bitmap bm1 = new EWAH64Bitmap();
+        EWAH64Bitmap bm2 = new EWAH64Bitmap();
 
         bm1.add(true);
         bm1.add(false);
@@ -132,7 +132,7 @@ public class EWAHBitmapTest {
 
     @Test
     public void testIterator() throws Exception {
-        EWAHBitmap bitmap = new EWAHBitmap();
+        EWAH64Bitmap bitmap = new EWAH64Bitmap();
         bitmap.add(false);
         bitmap.add(true);
         bitmap.add(false);

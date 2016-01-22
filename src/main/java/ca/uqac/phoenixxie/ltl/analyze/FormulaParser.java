@@ -9,6 +9,12 @@ import org.antlr.v4.runtime.*;
 public class FormulaParser {
 
     private static class Vistor extends LTLExprBaseVisitor<Expr> {
+        private int maxStateID = -1;
+
+        public int getMaxStateID() {
+            return maxStateID;
+        }
+
         @Override
         public Expr visitProg(LTLExprParser.ProgContext ctx) {
             return visit(ctx.expr());
@@ -43,6 +49,9 @@ public class FormulaParser {
         public Expr visitState(LTLExprParser.StateContext ctx) {
             String name = ctx.state.getText().substring(1);
             int index = Integer.parseInt(name);
+            if (index > maxStateID) {
+                maxStateID = index;
+            }
             return new Formula.StateExpr(index);
         }
 
@@ -94,6 +103,7 @@ public class FormulaParser {
         Formula ret = new Formula();
         ret.expr = input;
         ret.ltlExpr = expr;
+        ret.maxStateID = visitor.maxStateID;
         ret.success = parser.getNumberOfSyntaxErrors() == 0;
         ret.errorMsg = sbErr.toString();
 

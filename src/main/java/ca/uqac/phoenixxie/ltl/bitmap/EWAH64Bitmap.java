@@ -5,14 +5,14 @@ import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.IntIterator;
 import com.googlecode.javaewah.RunningLengthWord;
 
-public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
+public class EWAH64Bitmap implements LTLBitmap.BitmapAdapter {
     private EWAHCompressedBitmap bitmap;
 
-    public EWAHBitmap() {
+    public EWAH64Bitmap() {
         bitmap = new EWAHCompressedBitmap();
     }
 
-    private EWAHBitmap(EWAHCompressedBitmap bm) {
+    private EWAH64Bitmap(EWAHCompressedBitmap bm) {
         bitmap = bm;
     }
 
@@ -53,6 +53,11 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int getRealSize() {
+        return bitmap.sizeInBytes();
+    }
+
+    @Override
     public boolean firstBit() {
         return bitmap.get(0);
     }
@@ -80,7 +85,7 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
         try {
             EWAHCompressedBitmap bm = bitmap.clone();
             bm.not();
-            return new EWAHBitmap(bm);
+            return new EWAH64Bitmap(bm);
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;
@@ -89,29 +94,29 @@ public class EWAHBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public LTLBitmap.BitmapAdapter opAnd(LTLBitmap.BitmapAdapter bm) {
-        return new EWAHBitmap(bitmap.and(((EWAHBitmap) bm).bitmap));
+        return new EWAH64Bitmap(bitmap.and(((EWAH64Bitmap) bm).bitmap));
     }
 
     @Override
     public LTLBitmap.BitmapAdapter opOr(LTLBitmap.BitmapAdapter bm) {
-        return new EWAHBitmap(bitmap.or(((EWAHBitmap) bm).bitmap));
+        return new EWAH64Bitmap(bitmap.or(((EWAH64Bitmap) bm).bitmap));
     }
 
     @Override
     public LTLBitmap.BitmapAdapter opXor(LTLBitmap.BitmapAdapter bm) {
-        return new EWAHBitmap(bitmap.xor(((EWAHBitmap) bm).bitmap));
+        return new EWAH64Bitmap(bitmap.xor(((EWAH64Bitmap) bm).bitmap));
     }
 
     @Override
     public LTLBitmap.BitmapAdapter removeFirstBit() {
-        return new EWAHBitmap(bitmap.removeFirstBit());
+        return new EWAH64Bitmap(bitmap.removeFirstBit());
     }
 
     @Override
     public LTLBitmap.BitmapAdapter clone() {
         try {
             EWAHCompressedBitmap bm = bitmap.clone();
-            return new EWAHBitmap(bm);
+            return new EWAH64Bitmap(bm);
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;

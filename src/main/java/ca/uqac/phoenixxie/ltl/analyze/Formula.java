@@ -7,6 +7,7 @@ public class Formula {
     String expr;
     String errorMsg;
     Expr ltlExpr;
+    int maxStateID;
 
     public Expr getLtlExpr() {
         return ltlExpr;
@@ -22,6 +23,10 @@ public class Formula {
 
     public String getExpr() {
         return expr;
+    }
+
+    public int getMaxStateID() {
+        return maxStateID;
     }
 
     enum Op1Operator {

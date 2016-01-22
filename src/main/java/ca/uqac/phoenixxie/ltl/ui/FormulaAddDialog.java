@@ -1,5 +1,6 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
+import ca.uqac.phoenixxie.ltl.analyze.Formula;
 import ca.uqac.phoenixxie.ltl.analyze.FormulaParser;
 
 import javax.swing.*;
@@ -13,7 +14,7 @@ public class FormulaAddDialog extends JDialog {
     private JLabel labelMsg;
 
     public interface OnResultListener {
-        void onResult(FormulaParser.Result result);
+        void onResult(Formula result);
     }
 
     private OnResultListener listener = null;
@@ -57,7 +58,7 @@ public class FormulaAddDialog extends JDialog {
 
     private void onOK() {
         String text = textFieldFormula.getText();
-        FormulaParser.Result result = FormulaParser.parse(text);
+        Formula result = FormulaParser.parse(text);
         if (result.isSuccess()) {
             if (this.listener != null) {
                 this.listener.onResult(result);

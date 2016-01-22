@@ -26,7 +26,7 @@ public class LTLBitmap {
             case RAW:
                 return new RawBitmap();
             case EWAH:
-                return new EWAHBitmap();
+                return new EWAH64Bitmap();
             case EWAH32:
                 return new EWAH32Bitmap();
             case ROARING:
@@ -56,6 +56,14 @@ public class LTLBitmap {
     @Override
     public String toString() {
         return bitmap.toString();
+    }
+
+    public int sizeInBits() {
+        return bitmap.size();
+    }
+
+    public int sizeInRealBytes() {
+        return bitmap.getRealSize();
     }
 
     public LTLBitmap opNot() {
@@ -467,7 +475,6 @@ public class LTLBitmap {
         boolean isEnd();
     }
 
-
     public interface BitmapAdapter extends Cloneable {
         void add(boolean bit);
 
@@ -476,6 +483,8 @@ public class LTLBitmap {
         boolean get(int position);
 
         int size();
+
+        int getRealSize();
 
         boolean firstBit();
 

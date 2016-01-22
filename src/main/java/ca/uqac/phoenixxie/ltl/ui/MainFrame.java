@@ -1,9 +1,6 @@
 package ca.uqac.phoenixxie.ltl.ui;
 
-import ca.uqac.phoenixxie.ltl.analyze.FormulaParser;
-import ca.uqac.phoenixxie.ltl.analyze.State;
-import ca.uqac.phoenixxie.ltl.analyze.StateParser;
-import ca.uqac.phoenixxie.ltl.analyze.Utils;
+import ca.uqac.phoenixxie.ltl.analyze.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +38,7 @@ public class MainFrame extends JFrame {
     private DefaultListModel<String> listModelState = new DefaultListModel();
     private HashMap<String, HashSet<Integer>> variables = new HashMap<>();
 
-    private ArrayList<FormulaParser.Result> listFormulas = new ArrayList<FormulaParser.Result>();
+    private ArrayList<Formula> listFormulas = new ArrayList<Formula>();
     private DefaultListModel<String> listModelFormula = new DefaultListModel();
 
     public MainFrame() {
@@ -186,7 +183,7 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 FormulaAddDialog dlg = new FormulaAddDialog();
                 dlg.setResultListener(new FormulaAddDialog.OnResultListener() {
-                    public void onResult(FormulaParser.Result result) {
+                    public void onResult(Formula result) {
                         listFormulas.add(result);
                         listModelFormula.addElement(result.getExpr());
                     }
@@ -220,7 +217,7 @@ public class MainFrame extends JFrame {
                 File file = fc.getSelectedFile();
                 try {
                     FileWriter writer = new FileWriter(file);
-                    for (FormulaParser.Result p : listFormulas) {
+                    for (Formula p : listFormulas) {
                         writer.write(p.getExpr() + "\n");
                     }
                     writer.close();
@@ -251,7 +248,7 @@ public class MainFrame extends JFrame {
                                 continue;
                             }
 
-                            FormulaParser.Result result = FormulaParser.parse(line);
+                            Formula result = FormulaParser.parse(line);
                             if (result.isSuccess()) {
                                 listFormulas.add(result);
                                 listModelFormula.addElement(result.getExpr());

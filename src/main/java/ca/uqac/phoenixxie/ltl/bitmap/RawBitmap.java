@@ -83,6 +83,11 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int getRealSize() {
+        return size / 8 + ((size % 8) == 0 ? 0 : 1);
+    }
+
+    @Override
     public LTLBitmap.BitmapAdapter opNot() {
         RawBitmap bm = (RawBitmap) clone();
         bm.bitset.flip(0, size);

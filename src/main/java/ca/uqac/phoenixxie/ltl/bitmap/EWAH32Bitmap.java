@@ -53,6 +53,11 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int getRealSize() {
+        return bitmap.sizeInBytes();
+    }
+
+    @Override
     public boolean firstBit() {
         return bitmap.get(0);
     }
