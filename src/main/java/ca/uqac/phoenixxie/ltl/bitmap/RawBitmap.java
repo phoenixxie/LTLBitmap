@@ -33,6 +33,17 @@ public class RawBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int cardinality() {
+        int card = 0;
+        for (int i = 0; i < size; ++i) {
+            if (bitset.get(i)) {
+                ++card;
+            }
+        }
+        return card;
+    }
+
+    @Override
     public int last0() {
         for (int i = size - 1; i >= 0; --i) {
             if (bitset.get(i) == false) {

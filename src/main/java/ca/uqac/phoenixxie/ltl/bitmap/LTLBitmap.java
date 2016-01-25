@@ -66,6 +66,10 @@ public class LTLBitmap {
         return bitmap.getRealSize();
     }
 
+    public int cardinality() {
+        return bitmap.cardinality();
+    }
+
     public LTLBitmap opNot() {
         return new LTLBitmap(type, bitmap.opNot());
     }
@@ -156,7 +160,9 @@ public class LTLBitmap {
                 } else {
                     itb.moveForward(off);
                 }
+
                 pos = near1;
+
                 continue;
             }
 
@@ -454,11 +460,11 @@ public class LTLBitmap {
 
     public enum Type {
         RAW,
+        CONCISE,
+        WAHCONCISE,
         EWAH,
         EWAH32,
         ROARING,
-        CONCISE,
-        WAHCONCISE
     }
 
     public interface BitmapIterator {
@@ -487,6 +493,8 @@ public class LTLBitmap {
         int getRealSize();
 
         boolean firstBit();
+
+        int cardinality();
 
         int last0();
 

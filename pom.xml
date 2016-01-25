@@ -23,7 +23,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>ca.uqac.phoenixxie.ltl.analyze.LTLVerification</mainClass>
+                            <mainClass>ca.uqac.phoenixxie.ltl.ui.MainFrame</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

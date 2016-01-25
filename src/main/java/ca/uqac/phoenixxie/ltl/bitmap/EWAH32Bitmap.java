@@ -21,7 +21,7 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
         if (bit) {
             bitmap.set(bitmap.sizeInBits());
         } else {
-            bitmap.clear(bitmap.sizeInBits());
+            bitmap.setSizeInBits(bitmap.sizeInBits() + 1, false);
         }
     }
 
@@ -60,6 +60,11 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
     @Override
     public boolean firstBit() {
         return bitmap.get(0);
+    }
+
+    @Override
+    public int cardinality() {
+        return bitmap.cardinality();
     }
 
     @Override
@@ -276,7 +281,7 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
             }
 
             index += offset;
-            while (currMarkerStartPos + currMarkerMaxBits < index) {
+            while (currMarkerStartPos + currMarkerMaxBits <= index) {
                 moveForwardOneMarker();
             }
             updatePointerInThisMarker(index - currMarkerStartPos);
@@ -296,10 +301,14 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
                     if (itor.currRunningBit == false) {
                         return itor;
                     }
-                    itor.updatePointerInThisMarker(itor.currRunningLengthMaxBits);
+
+                    // switch to dirty words
+                    if (itor.currNumberOfDirtyWords > 0) {
+                        itor.updatePointerInThisMarker(itor.currRunningLengthMaxBits);
+                    }
                 }
 
-                int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits;
+                int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits + itor.pointerDirtyWord * EWAHCompressedBitmap32.WORD_IN_BITS;
                 for (int i = itor.pointerDirtyWord;
                      i < itor.currNumberOfDirtyWords;
                      ++i, itor.pointerInDirtyWord = 0, startbits += EWAHCompressedBitmap32.WORD_IN_BITS
@@ -355,7 +364,7 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
                     }
                 }
 
-                int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits;
+                int startbits = itor.currMarkerStartPos + itor.currRunningLengthMaxBits + itor.pointerDirtyWord * EWAHCompressedBitmap32.WORD_IN_BITS;
                 for (int i = itor.pointerDirtyWord;
                      i < itor.currNumberOfDirtyWords;
                      ++i, itor.pointerInDirtyWord = 0, startbits += EWAHCompressedBitmap32.WORD_IN_BITS
@@ -376,7 +385,7 @@ public class EWAH32Bitmap implements LTLBitmap.BitmapAdapter {
                     }
 
                     mask = 1 << itor.pointerInDirtyWord;
-                    for (int j = pointerInDirtyWord; j < leftbits; ++j) {
+                    for (int j = itor.pointerInDirtyWord; j < leftbits; ++j) {
                         if ((w & mask) == mask) {
                             itor.index = startbits + j;
                             itor.updatePointerInThisMarker(itor.index - itor.currMarkerStartPos);

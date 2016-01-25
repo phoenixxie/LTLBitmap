@@ -77,6 +77,11 @@ public class WAHConciseBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int cardinality() {
+        return bitmap.size();
+    }
+
+    @Override
     public int last0() {
         if (size == 0) {
             return -1;

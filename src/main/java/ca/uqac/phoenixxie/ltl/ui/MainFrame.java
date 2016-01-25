@@ -41,6 +41,8 @@ public class MainFrame extends JFrame {
     private ArrayList<Formula> listFormulas = new ArrayList<Formula>();
     private DefaultListModel<String> listModelFormula = new DefaultListModel();
 
+    private static File workingDirectory = new File(System.getProperty("user.dir"));
+
     public MainFrame() {
         setContentPane(MainFrame);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -125,6 +127,7 @@ public class MainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(workingDirectory);
                 int ret = fc.showSaveDialog(MainFrame.this);
                 if (ret != JFileChooser.APPROVE_OPTION) {
                     return;
@@ -146,6 +149,7 @@ public class MainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(workingDirectory);
                 fc.setMultiSelectionEnabled(true);
                 int ret = fc.showOpenDialog(MainFrame.this);
                 if (ret != JFileChooser.APPROVE_OPTION) {
@@ -210,6 +214,7 @@ public class MainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(workingDirectory);
                 int ret = fc.showSaveDialog(MainFrame.this);
                 if (ret != JFileChooser.APPROVE_OPTION) {
                     return;
@@ -231,6 +236,7 @@ public class MainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(workingDirectory);
                 fc.setMultiSelectionEnabled(true);
                 int ret = fc.showOpenDialog(MainFrame.this);
                 if (ret != JFileChooser.APPROVE_OPTION) {
@@ -267,6 +273,7 @@ public class MainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(workingDirectory);
                 int ret = fc.showSaveDialog(MainFrame.this);
                 if (ret != JFileChooser.APPROVE_OPTION) {
                     return;

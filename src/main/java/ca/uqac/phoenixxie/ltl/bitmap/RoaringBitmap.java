@@ -77,6 +77,11 @@ public class RoaringBitmap implements LTLBitmap.BitmapAdapter {
     }
 
     @Override
+    public int cardinality() {
+        return bitmap.getCardinality();
+    }
+
+    @Override
     public int last0() {
         IntIterator i = bitmap.getReverseIntIterator();
         int lastpos = size - 1;
