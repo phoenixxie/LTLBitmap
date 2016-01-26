@@ -113,8 +113,15 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
     public LTLBitmap.BitmapAdapter opNot() {
         ConciseBitmap bm = new ConciseBitmap(bitmap.complemented(), size);
 
-        if (bitmap.last() < size - 1) {
-            bm.bitmap.fill(bitmap.last() + 1, size - 1);
+        int bmSize = 0;
+        if (bitmap.isEmpty()) {
+            bmSize = 0;
+        } else {
+            bmSize = bitmap.last() + 1;
+        }
+
+        if (bmSize < size) {
+            bm.bitmap.fill(bmSize, size - 1);
         }
 
         return bm;

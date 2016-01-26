@@ -166,22 +166,26 @@ public class RunAll {
             }
             long end = System.currentTimeMillis();
             System.out.printf("Executed the states, used %.4f seconds\n", (float) (end - start) / 1000f);
-            printStat(bitmaps);
+            for (int i = 0; i < bitmaps.length; ++i) {
+                printStat(states.get(i).getExpr(), bitmaps[i]);
+                System.out.println();
+            }
 
             System.out.println("Forced garbage collection, starting...");
             System.gc();
             System.out.println("Forced garbage collection, end");
+            System.out.println();
 
             LTLBitmap[] results = new LTLBitmap[formulas.size()];
 
-            start = System.currentTimeMillis();
             for (int i = 0; i < results.length; ++i) {
+                start = System.currentTimeMillis();
                 results[i] = formulas.get(i).getLtlExpr().getResult(bitmaps);
+                end = System.currentTimeMillis();
+                printStat(formulas.get(i).getExpr(), results[i]);
+                System.out.printf("Used %.4f seconds\n", (float) (end - start) / 1000f);
+                System.out.println();
             }
-            end = System.currentTimeMillis();
-
-            System.out.printf("Got the result, used %.4f seconds\n", (float) (end - start) / 1000f);
-            printStat(results);
 
             if (option.verifyResult) {
                 boolean first = strResults.isEmpty();
@@ -200,32 +204,18 @@ public class RunAll {
             System.out.println("Forced garbage collection, starting...");
             System.gc();
             System.out.println("Forced garbage collection, end");
+            System.out.println();
         }
     }
 
-    private static void printStat(LTLBitmap[] bms) {
-        int bits = 0;
-        int bytes = 0;
-        int cards = 0;
-
-        int i = 0;
-        for (LTLBitmap bm : bms) {
-            int bit = bm.sizeInBits();
-            int card = bm.cardinality();
-            int byten = bm.sizeInRealBytes();
-            bits += bit;
-            bytes += byten;
-            cards += card;
-            System.out.println("Bitmap #" + i);
-            System.out.println("Bit count: " + bit + ", cardinality: " + card);
-            System.out.println("Compressed byte count: " + byten);
-            System.out.printf("Compression ratio: %.2f%%\n", ((float) byten * 8f * 100f / (float) bit));
-            ++i;
-        }
-
-        System.out.println("Total bit count: " + bits + ", cardinality: " + cards);
-        System.out.println("Total compressed byte count: " + bytes);
-        System.out.printf("Total compression ratio: %.2f%%\n", ((float) bytes * 8f * 100f / (float) bits));
+    private static void printStat(String title, LTLBitmap bm) {
+        int bit = bm.sizeInBits();
+        int card = bm.cardinality();
+        int byten = bm.sizeInRealBytes();
+        System.out.println("Bitmap: " + title);
+        System.out.println("Bit count: " + bit + ", cardinality: " + card);
+        System.out.println("Compressed byte count: " + byten);
+        System.out.printf("Compression ratio: %.2f%%\n", ((float) byten * 8f * 100f / (float) bit));
     }
 
     private static class Option {

@@ -6,6 +6,16 @@ import static org.junit.Assert.*;
 
 public class ConciseBitmapTest {
     @Test
+    public void testNext() {
+        LTLBitmap.BitmapAdapter bitmap = new ConciseBitmap();
+        for (int i = 0; i < 32; ++i) {
+            bitmap.add(true);
+        }
+        bitmap = bitmap.removeFirstBit();
+        System.out.println(bitmap.toString());
+    }
+
+    @Test
     public void testBasic() throws Exception {
         ConciseBitmap bitmap = new ConciseBitmap();
         bitmap.add(false);
