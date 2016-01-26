@@ -8,6 +8,7 @@ import ca.uqac.phoenixxie.ltl.bitmap.LTLBitmap;
 
 import java.io.*;
 import java.security.InvalidParameterException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class RunAll {
@@ -141,11 +142,15 @@ public class RunAll {
         HashMap<String, Integer> vars = new HashMap<>();
         ArrayList<String> strResults = new ArrayList<>();
 
+        Stat stat = new Stat(linecnt - 1, states.size(), formulas.size());
+
         System.out.println("Forced garbage collection, starting...");
         System.gc();
         System.out.println("Forced garbage collection, end");
 
         for (LTLBitmap.Type type : LTLBitmap.Type.values()) {
+            StringBuilder sb = new StringBuilder();
+
             LTLBitmap[] bitmaps = new LTLBitmap[states.size()];
             for (int i = 0; i < bitmaps.length; ++i) {
                 bitmaps[i] = new LTLBitmap(type);
@@ -166,9 +171,13 @@ public class RunAll {
             }
             long end = System.currentTimeMillis();
             System.out.printf("Executed the states, used %.4f seconds\n", (float) (end - start) / 1000f);
+            stat.setStateUsedTime(type, end - start);
+
             for (int i = 0; i < bitmaps.length; ++i) {
                 printStat(states.get(i).getExpr(), bitmaps[i]);
                 System.out.println();
+
+                stat.setState(i, bitmaps[i].cardinality(), type, bitmaps[i].sizeInRealBytes());
             }
 
             System.out.println("Forced garbage collection, starting...");
@@ -185,6 +194,8 @@ public class RunAll {
                 printStat(formulas.get(i).getExpr(), results[i]);
                 System.out.printf("Used %.4f seconds\n", (float) (end - start) / 1000f);
                 System.out.println();
+
+                stat.setFormula(i, results[i].cardinality(), type, end - start, results[i].sizeInRealBytes());
             }
 
             if (option.verifyResult) {
@@ -206,6 +217,20 @@ public class RunAll {
             System.out.println("Forced garbage collection, end");
             System.out.println();
         }
+
+
+        String datafile = System.getProperty("user.dir") + File.separator + "data-"
+                + new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()) + ".csv";
+
+        try {
+            BufferedWriter dataWriter = new BufferedWriter(new FileWriter(datafile, true));
+            dataWriter.write(stat.toCSV());
+            dataWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     private static void printStat(String title, LTLBitmap bm) {
@@ -216,6 +241,79 @@ public class RunAll {
         System.out.println("Bit count: " + bit + ", cardinality: " + card);
         System.out.println("Compressed byte count: " + byten);
         System.out.printf("Compression ratio: %.2f%%\n", ((float) byten * 8f * 100f / (float) bit));
+    }
+
+    static class Stat {
+        int eventsNum;
+        HashMap<LTLBitmap.Type, Long> stateUsedTime = new HashMap<>();
+        State[] states;
+        Formula[] formulas;
+
+        public Stat(int eventsNum, int statesNum, int formulaNum) {
+            this.eventsNum = eventsNum;
+            this.states = new State[statesNum];
+            for (int i = 0; i < statesNum; ++i) {
+                this.states[i] = new State();
+            }
+            this.formulas = new Formula[formulaNum];
+            for (int i = 0; i < formulaNum; ++i) {
+                this.formulas[i] = new Formula();
+            }
+        }
+
+        public void setStateUsedTime(LTLBitmap.Type type, long usedTime) {
+            stateUsedTime.put(type, usedTime);
+        }
+
+        public void setState(int idx, int card, LTLBitmap.Type type, int bytes) {
+            State st = this.states[idx];
+            st.cardinality = card;
+            st.bytes.put(type, bytes);
+        }
+
+        public void setFormula(int idx, int card, LTLBitmap.Type type, long usedTime, int bytes) {
+            Formula fm = this.formulas[idx];
+            fm.cardinality = card;
+            fm.bytes.put(type, bytes);
+            fm.usedTime.put(type, usedTime);
+        }
+
+        public String toCSV() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(eventsNum).append(",")
+                    .append(states.length).append(",")
+                    .append(formulas.length).append(",");
+            for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                sb.append(stateUsedTime.get(t)).append(",");
+            }
+            for (State st : states) {
+                sb.append(st.cardinality).append(",");
+                for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                    sb.append(st.bytes.get(t)).append(",");
+                }
+            }
+            for (Formula fm : formulas) {
+                sb.append(fm.cardinality).append(",");
+                for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                    sb.append(fm.usedTime.get(t)).append(",");
+                    sb.append(fm.bytes.get(t)).append(",");
+                }
+            }
+
+            String str = sb.toString();
+            return str.substring(0, str.length() - 1) + "\n";
+        }
+
+        class State {
+            int cardinality;
+            HashMap<LTLBitmap.Type, Integer> bytes = new HashMap<>();
+        }
+
+        class Formula {
+            int cardinality;
+            HashMap<LTLBitmap.Type, Integer> bytes = new HashMap<>();
+            HashMap<LTLBitmap.Type, Long> usedTime = new HashMap<>();
+        }
     }
 
     private static class Option {
