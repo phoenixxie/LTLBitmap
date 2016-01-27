@@ -8,7 +8,11 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
     private int size;
 
     public ConciseBitmap() {
-        bitmap = new ConciseSet(false);
+        this(false);
+    }
+
+    public ConciseBitmap(boolean simWAH) {
+        bitmap = new ConciseSet(simWAH);
         size = 0;
     }
 
@@ -156,58 +160,28 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
 
     @Override
     public LTLBitmap.BitmapIterator end() {
-        return new Iterator(null, size, -1);
+        return new Iterator(null, size);
     }
 
     private class Iterator implements LTLBitmap.BitmapIterator {
+        private ConciseSet.LTLIterator itor;
         private int index;
-        private IntSet.IntIterator itor;
-        private boolean isEnd = false;
-        private int next1Pos;
-        private boolean currentBit;
+        private boolean isEnd;
 
         public Iterator() {
+            itor = bitmap.getLTLIterator();
+            index = 0;
+            isEnd = false;
             if (size == 0) {
                 isEnd = true;
-                index = 0;
-                return;
-            }
-            index = 0;
-            if (bitmap.isEmpty()) {
-                next1Pos = -1;
-                itor = null;
-                return;
-            }
-
-            itor = bitmap.iterator();
-            next1();
-            if (next1Pos == 0) {
-                currentBit = true;
-            } else {
-                currentBit = false;
             }
         }
 
-        private Iterator(IntSet.IntIterator it, int index, int next1Pos) {
+        private Iterator(ConciseSet.LTLIterator it, int index) {
             this.itor = it;
             this.index = index;
             if (index == size) {
-                isEnd = true;
-                return;
-            }
-            this.next1Pos = next1Pos;
-            if (index == next1Pos) {
-                currentBit = true;
-            } else {
-                currentBit = false;
-            }
-        }
-
-        private void next1() {
-            if (itor.hasNext()) {
-                next1Pos = itor.next();
-            } else {
-                next1Pos = -1;
+                this.isEnd = true;
             }
         }
 
@@ -218,25 +192,21 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
 
         @Override
         public void moveForward(int offset) {
-            if (index + offset > size) {
+            index += offset;
+            if (index > size) {
                 throw new IndexOutOfBoundsException();
             }
-            if (index + offset == size) {
+            if (index == size) {
                 isEnd = true;
-                index = size;
                 return;
             }
-            int dest = index + offset;
-            while (next1Pos != -1 && dest > next1Pos) {
-                next1();
+
+            if (bitmap.isEmpty() || index > bitmap.last()) {
+                return;
             }
 
-            if (dest == next1Pos) {
-                currentBit = true;
-            } else {
-                currentBit = false;
-            }
-            index = dest;
+            itor.moveForward(offset);
+            assert index == itor.index();
         }
 
         @Override
@@ -245,25 +215,19 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
                 throw new IndexOutOfBoundsException();
             }
 
-            if (next1Pos == -1) {
-                return new Iterator(null, index, -1);
+            if (bitmap.isEmpty() || index > bitmap.last()) {
+                return new Iterator(null, index);
             }
 
-            Iterator newit = new Iterator(itor.clone(), index, next1Pos);
-            if (newit.next1Pos == -1 || newit.index < newit.next1Pos) {
-                return newit;
-            }
-
-            while (newit.next1Pos != -1 && newit.index == newit.next1Pos) {
-                newit.next1();
-                ++newit.index;
-            }
-            if (newit.index == size) {
+            ConciseSet.LTLIterator it = itor.find0();
+            if (it == null) {
+                if (size > bitmap.last() + 1) {
+                    return new Iterator(null, bitmap.last() + 1);
+                }
                 return null;
             }
-            newit.currentBit = false;
 
-            return newit;
+            return new Iterator(it, it.index());
         }
 
         @Override
@@ -272,27 +236,16 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
                 throw new IndexOutOfBoundsException();
             }
 
-            if (next1Pos == -1) {
+            if (bitmap.isEmpty() || index > bitmap.last()) {
                 return null;
             }
 
-            if (index < next1Pos) {
-                return new Iterator(itor.clone(), next1Pos, next1Pos);
-            }
-
-            Iterator newit = new Iterator(itor.clone(), index, next1Pos);
-            if (newit.index == newit.next1Pos) {
-                return newit;
-            }
-
-            newit.next1();
-            if (newit.next1Pos == -1) {
+            ConciseSet.LTLIterator it = itor.find1();
+            if (it == null) {
                 return null;
             }
-            newit.index = newit.next1Pos;
-            newit.currentBit = true;
 
-            return newit;
+            return new Iterator(it, it.index());
         }
 
         @Override
@@ -300,7 +253,12 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
             if (isEnd) {
                 throw new IndexOutOfBoundsException();
             }
-            return currentBit;
+
+            if (bitmap.isEmpty() || index > bitmap.last()) {
+                return false;
+            }
+
+            return itor.currentBit();
         }
 
         @Override

@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 public class WAHConciseBitmapTest {
     @Test
     public void testBasic() throws Exception {
-        WAHConciseBitmap bitmap = new WAHConciseBitmap();
+        ConciseBitmap bitmap = new ConciseBitmap(true);
         bitmap.add(false);
         bitmap.add(true);
         bitmap.add(false);
@@ -37,7 +37,7 @@ public class WAHConciseBitmapTest {
 
     @Test
     public void testLastBit() throws Exception {
-        WAHConciseBitmap bitmap = new WAHConciseBitmap();
+        ConciseBitmap bitmap = new ConciseBitmap(true);
         bitmap.addMany(true, 100);
         assertEquals("1", -1, bitmap.last0());
         assertEquals("2", 99, bitmap.last1());
@@ -54,7 +54,7 @@ public class WAHConciseBitmapTest {
 
     @Test
     public void testRemoveFirstBit() throws Exception {
-        WAHConciseBitmap bitmap = new WAHConciseBitmap();
+        ConciseBitmap bitmap = new ConciseBitmap(true);
         bitmap.add(true);
         LTLBitmap.BitmapAdapter bm = bitmap.removeFirstBit();
         assertEquals("1", 0, bm.size());
@@ -76,8 +76,8 @@ public class WAHConciseBitmapTest {
 
     @Test
     public void testOpAnd() throws Exception {
-        WAHConciseBitmap bm1 = new WAHConciseBitmap();
-        WAHConciseBitmap bm2 = new WAHConciseBitmap();
+        ConciseBitmap bm1 = new ConciseBitmap(true);
+        ConciseBitmap bm2 = new ConciseBitmap(true);
 
         bm1.add(true);
         bm1.add(false);
@@ -95,8 +95,8 @@ public class WAHConciseBitmapTest {
 
     @Test
     public void testOpOr() throws Exception {
-        WAHConciseBitmap bm1 = new WAHConciseBitmap();
-        WAHConciseBitmap bm2 = new WAHConciseBitmap();
+        ConciseBitmap bm1 = new ConciseBitmap(true);
+        ConciseBitmap bm2 = new ConciseBitmap(true);
 
         bm1.add(true);
         bm1.add(false);
@@ -114,8 +114,8 @@ public class WAHConciseBitmapTest {
 
     @Test
     public void testOpXor() throws Exception {
-        WAHConciseBitmap bm1 = new WAHConciseBitmap();
-        WAHConciseBitmap bm2 = new WAHConciseBitmap();
+        ConciseBitmap bm1 = new ConciseBitmap(true);
+        ConciseBitmap bm2 = new ConciseBitmap(true);
 
         bm1.add(true);
         bm1.add(false);
@@ -134,7 +134,7 @@ public class WAHConciseBitmapTest {
 
     @Test
     public void testIterator() {
-        WAHConciseBitmap bitmap = new WAHConciseBitmap();
+        ConciseBitmap bitmap = new ConciseBitmap(true);
         bitmap.add(false);
         bitmap.add(true);
         bitmap.add(false);

@@ -34,7 +34,7 @@ public class LTLBitmap {
             case CONCISE:
                 return new ConciseBitmap();
             case WAHCONCISE:
-                return new WAHConciseBitmap();
+                return new ConciseBitmap(true);
         }
         throw new InvalidParameterException();
     }

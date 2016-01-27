@@ -13,6 +13,12 @@ import java.util.*;
 
 public class RunAll {
 
+    private static void gc() {
+        System.out.println("Forced garbage collection, starting...");
+        System.gc();
+        System.out.println("Forced garbage collection, end");
+    }
+
     public static void main(String[] args) {
         Option option;
         try {
@@ -144,9 +150,7 @@ public class RunAll {
 
         Stat stat = new Stat(linecnt - 1, states.size(), formulas.size());
 
-        System.out.println("Forced garbage collection, starting...");
-        System.gc();
-        System.out.println("Forced garbage collection, end");
+        gc();
 
         for (LTLBitmap.Type type : LTLBitmap.Type.values()) {
             StringBuilder sb = new StringBuilder();
@@ -194,6 +198,8 @@ public class RunAll {
                 printStat(formulas.get(i).getExpr(), results[i]);
                 System.out.printf("Used %.4f seconds\n", (float) (end - start) / 1000f);
                 System.out.println();
+                gc();
+                System.out.println();
 
                 stat.setFormula(i, results[i].cardinality(), type, end - start, results[i].sizeInRealBytes());
             }
@@ -212,10 +218,6 @@ public class RunAll {
                     }
                 }
             }
-            System.out.println("Forced garbage collection, starting...");
-            System.gc();
-            System.out.println("Forced garbage collection, end");
-            System.out.println();
         }
 
 

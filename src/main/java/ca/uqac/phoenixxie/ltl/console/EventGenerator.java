@@ -75,7 +75,7 @@ public class EventGenerator {
         private File events = null;
         private int count = 0;
         private int min = -10000;
-        private int max = 100000;
+        private int max = 10000;
 
         public static void usage() {
             System.out.println("Options:");
