@@ -1,6 +1,9 @@
 package ca.uqac.phoenixxie.ltl.bitmap;
 
 import org.junit.Test;
+import org.junit.runner.notification.RunListener;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.Assert.*;
 
@@ -13,6 +16,37 @@ public class ConciseBitmapTest {
         }
         bitmap = bitmap.removeFirstBit();
         System.out.println(bitmap.toString());
+    }
+
+    @Test
+    public void testLast0() throws Exception {
+        RawBitmap raw = new RawBitmap();
+        ConciseBitmap bm = new ConciseBitmap();
+
+//        String bits = "01001010";
+//        for (char c : bits.toCharArray()) {
+//            if (c == '0') {
+//                raw.add(false);
+//                bm.add(false);
+//            } else if (c == '1') {
+//                raw.add(true);
+//                bm.add(true);
+//            }
+//        }
+//        assertEquals(raw.last0(), bm.last0());
+
+        for (int i = 0; i < 1000; ++i) {
+            boolean b = ThreadLocalRandom.current().nextBoolean();
+            boolean c = ThreadLocalRandom.current().nextBoolean();
+            if (b) {
+                raw.addMany(c, 31);
+                bm.addMany(c, 31);
+            } else {
+                raw.add(c);
+                bm.add(c);
+            }
+            assertEquals("" + i, raw.last0(), bm.last0());
+        }
     }
 
     @Test

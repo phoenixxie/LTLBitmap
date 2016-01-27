@@ -89,16 +89,7 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
         if (last1() != size - 1) {
             return size - 1;
         }
-        IntSet.IntIterator it = bitmap.descendingIterator();
-        int lastpos = size - 1;
-        while (it.hasNext()) {
-            int pos = it.next();
-            if (pos != lastpos) {
-                break;
-            }
-            --lastpos;
-        }
-        return lastpos;
+        return bitmap.last0();
     }
 
     @Override
