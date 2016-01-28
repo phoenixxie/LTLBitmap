@@ -49,6 +49,31 @@ public class ConciseBitmapTest {
         }
     }
 
+//    @Test
+//    public void test2() throws Exception {
+//        ConciseBitmap bm1 = new ConciseBitmap();
+//
+//        for (int i = 0; i < 10000000; ++i) {
+//            boolean b = ThreadLocalRandom.current().nextBoolean();
+//            bm1.add(b);
+//        }
+//
+//        LTLBitmap.BitmapIterator it = bm1.begin();
+//        while (!it.isEnd()) {
+//            LTLBitmap.BitmapIterator it1 = it.find1();
+//            if (it1 == null) {
+//                break;
+//            }
+//            it = it1;
+//            LTLBitmap.BitmapIterator it0 = it.find0();
+//            if (it0 == null) {
+//                break;
+//            }
+//            it = it0;
+//            it.moveForward(1);
+//        }
+//    }
+
     @Test
     public void testBasic() throws Exception {
         ConciseBitmap bitmap = new ConciseBitmap();
