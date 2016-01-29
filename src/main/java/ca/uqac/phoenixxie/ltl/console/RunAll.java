@@ -220,7 +220,6 @@ public class RunAll {
             }
         }
 
-
         String datafile = System.getProperty("user.dir") + File.separator + "data-"
                 + new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()) + ".csv";
 
