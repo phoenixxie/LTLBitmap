@@ -5,15 +5,12 @@ import ca.uqac.phoenixxie.ltl.analyze.FormulaParser;
 import ca.uqac.phoenixxie.ltl.analyze.State;
 import ca.uqac.phoenixxie.ltl.analyze.StateParser;
 import ca.uqac.phoenixxie.ltl.bitmap.LTLBitmap;
-import ca.uqac.phoenixxie.ltl.bitmap.RoaringBitmap;
-import com.googlecode.javaewah.EWAHCompressedBitmap;
 
 import java.io.*;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.SynchronousQueue;
 
 public class RunOne {
 
@@ -99,11 +96,9 @@ public class RunOne {
         System.out.println("Got " + formulas.size() + " formulas");
 
         HashMap<String, Integer> vars = new HashMap<>();
-        org.roaringbitmap.RoaringBitmap[] bms = new org.roaringbitmap.RoaringBitmap[states.size()];
         LTLBitmap[] bitmaps = new LTLBitmap[states.size()];
         for (int i = 0; i < bitmaps.length; ++i) {
             bitmaps[i] = new LTLBitmap(option.bmtype);
-            bms[i] = new org.roaringbitmap.RoaringBitmap();
         }
 
         int linecnt = 0;
@@ -140,10 +135,6 @@ public class RunOne {
                 for (int i = 0; i < states.size(); ++i) {
                     boolean v = states.get(i).getStateExpr().getResult(vars);
                     bitmaps[i].add(v);
-                    if (v) {
-                        bms[i].add(linecnt - 2);
-                    } else {
-                    }
                 }
             }
             br.close();
@@ -159,53 +150,32 @@ public class RunOne {
         }
 
         System.out.println("Read " + (linecnt - 1) + " lines of events");
-        printStat(bitmaps);
 
-        int bits = 0;
-        int bytes = 0;
-        for (int i = 0; i < bms.length; ++i) {
-            bits += bitmaps[i].sizeInBits();
-            bytes += bms[i].getSizeInBytes();
+        for (int i = 0; i < bitmaps.length; ++i) {
+            printStat(states.get(i).getExpr(), bitmaps[i]);
         }
-        System.out.println("Bit count: " + bits);
-        System.out.println("Used byte count: " + bytes);
-        System.out.printf("Compression ratio: %.2f%%\n", ((float)bytes * 8f * 100f / (float)bits));
 
         LTLBitmap[] results = new LTLBitmap[formulas.size()];
 
-        long start = System.currentTimeMillis();
         for (int i = 0; i < results.length; ++i) {
+            long start = System.currentTimeMillis();
             results[i] = formulas.get(i).getLtlExpr().getResult(bitmaps);
+            long end = System.currentTimeMillis();
+            printStat(formulas.get(i).getExpr(), results[i]);
+            System.out.printf("Got the result, used %.4f seconds\n", (float) (end - start) / 1000f);
         }
-        long end = System.currentTimeMillis();
 
-        System.out.printf("Got the result, used %.4f seconds\n", (float)(end - start) / 1000f);
-        printStat(results);
     }
 
-    private static void printStat(LTLBitmap[] bms) {
-        int bits = 0;
-        int bytes = 0;
-        int cards = 0;
-
-        int i = 0;
-        for (LTLBitmap bm : bms) {
-            int bit = bm.sizeInBits();
-            int card = bm.cardinality();
-            int byten = bm.sizeInRealBytes();
-            bits += bit;
-            bytes += byten;
-            cards += card;
-            System.out.println("Bitmap #" + i);
-            System.out.println("Bit count: " + bit + ", cardinality: " + card);
-            System.out.println("Compressed byte count: " + byten);
-            System.out.printf("Compression ratio: %.2f%%\n", ((float) byten * 8f * 100f / (float) bit));
-            ++i;
-        }
-
-        System.out.println("Total bit count: " + bits + ", cardinality: " + cards);
-        System.out.println("Total compressed byte count: " + bytes);
-        System.out.printf("Total compression ratio: %.2f%%\n", ((float) bytes * 8f * 100f / (float) bits));
+    private static void printStat(String expr, LTLBitmap bm) {
+        int bit = bm.sizeInBits();
+        int card = bm.cardinality();
+        int byten = bm.sizeInRealBytes();
+        System.out.println();
+        System.out.println("Bitmap " + expr);
+        System.out.println("Bit count: " + bit + ", cardinality: " + card);
+        System.out.println("Compressed byte count: " + byten);
+        System.out.printf("Compression ratio: %.2f%%\n", ((float) byten * 8f * 100f / (float) bit));
     }
 
     private static class Option {

@@ -20,9 +20,6 @@ public class RoaringBitmap implements LTLBitmap.BitmapAdapter {
     public void add(boolean bit) {
         if (bit) {
             bitmap.add(size);
-        } else {
-            bitmap.add(size);
-            bitmap.flip(size);
         }
         ++size;
     }
@@ -30,9 +27,9 @@ public class RoaringBitmap implements LTLBitmap.BitmapAdapter {
     @Override
     public void addMany(boolean bit, int count) {
         if (bit) {
-            bitmap.add(size, size + count);
-        } else {
-            bitmap.remove(size, size + count);
+            for (int i = size; i < size + count; ++i) {
+                bitmap.add(i);
+            }
         }
         size += count;
     }
