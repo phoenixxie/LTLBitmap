@@ -459,12 +459,26 @@ public class LTLBitmap {
     }
 
     public enum Type {
-        RAW,
-        CONCISE,
-        WAHCONCISE,
-        EWAH,
-        EWAH32,
-        ROARING,
+        RAW("Raw"),
+        CONCISE("Concise"),
+        WAHCONCISE("WAH"),
+        EWAH("EWAH(64bit)"),
+        EWAH32("EWAH(32bit)"),
+        ROARING("Roaring bitmap");
+
+        private final String name;
+
+        private Type(String s) {
+            name = s;
+        }
+
+        public boolean equalsName(String otherName) {
+            return (otherName == null) ? false : name.equals(otherName);
+        }
+
+        public String toString() {
+            return this.name;
+        }
     }
 
     public interface BitmapIterator {

@@ -306,6 +306,143 @@ public class RunAll {
             return str.substring(0, str.length() - 1) + "\n";
         }
 
+        public static Stat fromCSV(String input) {
+            String[] parts = input.trim().split(",");
+            int eventsNum = Integer.parseInt(parts[0]);
+            int statesNum = Integer.parseInt(parts[1]);
+            int formulasNum = Integer.parseInt(parts[2]);
+            Stat stat = new Stat(eventsNum, statesNum, formulasNum);
+
+            int idx = 3;
+            for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                stat.stateUsedTime.put(t, Long.parseLong(parts[idx++]));
+            }
+
+            for (int i = 0; i < statesNum; ++i) {
+                int card = Integer.parseInt(parts[idx++]);
+                for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                    stat.setState(i, card, t, Integer.parseInt(parts[idx++]));
+                }
+            }
+
+            for (int i = 0; i < formulasNum; ++i) {
+                int card = Integer.parseInt(parts[idx++]);
+                for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                    stat.setFormula(i, card, t, Long.parseLong(parts[idx++]), Integer.parseInt(parts[idx++]));
+                }
+            }
+
+            return stat;
+        }
+
+        public static String csvToLatex(String line) {
+            Stat stat = fromCSV(line);
+            return stat.toLatex();
+        }
+
+        public String toLatex() {
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("\\begin{table}[h]\n");
+            sb.append("\\centering\n");
+            sb.append("\\begin{tabular}{|l|l|");
+            for (State state : states) {
+                sb.append("c|");
+            }
+            sb.append("}\n");
+
+            sb.append("\\hline\n");
+            sb.append("\\multicolumn{2}{|c|}{} ");
+            for (int i = 0; i < states.length; ++i) {
+                sb.append("& \\states(").append(i + 1).append(") ");
+            }
+            sb.append("\\\\\n");
+
+            sb.append("\\hline\n");
+            sb.append("\\multicolumn{2}{|c|}{Number of bits} ");
+            for (State state1 : states) {
+                sb.append("& ").append(eventsNum).append(" ");
+            }
+            sb.append("\\\\\n");
+
+            sb.append("\\hline\n");
+            sb.append("\\multicolumn{2}{|c|}{Cardinality} ");
+            for (State state : states) {
+                sb.append("& ").append(state.cardinality).append(" ");
+            }
+            sb.append("\\\\\n");
+
+            for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                sb.append("\\hline\n");
+                sb.append("\\multirow{3}{*}{").append(t.toString()).append("} & Bytes ");
+                for (State state : states) {
+                    sb.append("& ").append(state.bytes.get(t)).append(" ");
+                }
+                sb.append("\\\\\n");
+
+                sb.append("\\cline{2-").append(2 + states.length).append("}\n");
+                sb.append("& Ratio ");
+                for (State state : states) {
+                    sb.append("& ")
+                      .append(String.format("%.2f", (double) state.bytes.get(t) * 8f * 100f / (double) eventsNum)).append("\\% ");
+                }
+                sb.append("\\\\\n");
+
+                sb.append("\\cline{2-").append(2 + states.length).append("}\n");
+                sb.append("& Time (seconds) ");
+                sb.append("& \\multicolumn{").append(states.length).append("}{|c|}{")
+                  .append(String.format("%.2f", (double) stateUsedTime.get(t) / 1000f)).append("} ");
+                sb.append("\\\\\n");
+            }
+
+            sb.append("\\hline\n");
+            sb.append("\\end{tabular}\n");
+            sb.append("\\caption{Statements}\n");
+            sb.append("\\label{table:statements}\n");
+            sb.append("\\end{table}\n\n");
+
+            for (int i = 0; i < formulas.length; ++i) {
+                Formula f = formulas[i];
+                sb.append("\\begin{table}[h]\n");
+                sb.append("\\centering\n");
+                sb.append("\\begin{tabular}{|l|l|c|}\n");
+
+                sb.append("\\hline\n");
+                sb.append("\\multicolumn{3}{|c|}{\\formulas(").append(i + 1).append(")}");
+                sb.append("\\\\\n");
+
+                sb.append("\\hline\n");
+                sb.append("\\multicolumn{2}{|c|}{Cardinality} ");
+                sb.append(" & ").append(f.cardinality).append(" ");
+                sb.append("\\\\\n");
+
+                for (LTLBitmap.Type t : LTLBitmap.Type.values()) {
+                    sb.append("\\hline\n");
+                    sb.append("\\multirow{3}{*}{").append(t.toString()).append("} & Bytes ");
+                    sb.append(" & ").append(f.bytes.get(t)).append(" ");
+                    sb.append("\\\\\n");
+
+                    sb.append("\\cline{2-3}\n");
+                    sb.append("& Ratio ");
+                    sb.append(" & ").append(String.format("%.2f", (double) f.bytes.get(t) * 8f * 100f / (double) eventsNum)).append("\\% ");
+                    sb.append("\\\\\n");
+
+                    sb.append("\\cline{2-3}\n");
+                    sb.append("& Time (seconds) ");
+                    sb.append(" & ").append(String.format("%.2f", (double) f.usedTime.get(t) / 1000f)).append(" ");
+                    sb.append("\\\\\n");
+                }
+
+                sb.append("\\hline\n");
+                sb.append("\\end{tabular}\n");
+                sb.append("\\caption[]{\\formulas(").append(i + 1).append(")}\n");
+                sb.append("\\label{table:formula").append(i + 1).append("}\n");
+                sb.append("\\end{table}\n\n");
+            }
+
+            return sb.toString();
+        }
+
         class State {
             int cardinality;
             HashMap<LTLBitmap.Type, Integer> bytes = new HashMap<>();
