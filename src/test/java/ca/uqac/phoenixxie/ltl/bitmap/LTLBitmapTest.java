@@ -142,10 +142,10 @@ public abstract class LTLBitmapTest {
         bm = left.opWeakUntil(right);
         assertEquals("1001W0100", "1101", bm.toString());
 
-        left = newBm("1000101");
-        right = newBm("0100000");
+        left = newBm("1000001");
+        right = newBm("0101000");
         bm = left.opWeakUntil(right);
-        assertEquals("1000101W0100", "1100001", bm.toString());
+        assertEquals("1000001W0101000", "1101001", bm.toString());
 
         left = newBm("1010");
         right = newBm("0101");

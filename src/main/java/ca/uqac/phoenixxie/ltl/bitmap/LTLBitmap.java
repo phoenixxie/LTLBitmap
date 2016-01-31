@@ -133,12 +133,18 @@ public class LTLBitmap {
         BitmapAdapter answer = createAdapter(type);
 
         int pos = 0;
+        BitmapIterator ita1 = ita, ita0 = ita;
+        BitmapIterator itb1 = itb, itb0 = itb;
         while (!ita.isEnd() && !itb.isEnd()) {
-            BitmapIterator ita1 = ita.find1();
+            if (ita.index() >= ita1.index()) {
+                ita1 = ita.find1();
+            }
             if (ita1 == null) {
                 ita = null;
             }
-            BitmapIterator itb1 = itb.find1();
+            if (itb.index() >= itb1.index()) {
+                itb1 = itb.find1();
+            }
             if (itb1 == null) {
                 itb = null;
             }
@@ -167,7 +173,9 @@ public class LTLBitmap {
             }
 
             if (itb1.index() == pos) {
-                BitmapIterator itb0 = itb1.find0();
+                if (itb0.index() <= itb1.index()) {
+                    itb0 = itb1.find0();
+                }
                 if (itb0 == null) {
                     itb0 = right.end();
                 }
@@ -180,7 +188,9 @@ public class LTLBitmap {
                 continue;
             }
 
-            BitmapIterator ita0 = ita1.find0();
+            if (ita0.index() <= ita1.index()) {
+                ita0 = ita1.find0();
+            }
             if (ita0 == null) {
                 ita0 = left.end();
             }
@@ -205,7 +215,9 @@ public class LTLBitmap {
         } else if (ita == null) {
             pos = itb.index();
             while (!itb.isEnd()) {
-                BitmapIterator itb1 = itb.find1();
+                if (itb1.index() <= itb.index()) {
+                    itb1 = itb.find1();
+                }
                 if (itb1 == null) {
                     answer.addMany(false, left.size() - answer.size());
                     break;
@@ -218,7 +230,9 @@ public class LTLBitmap {
                     continue;
                 }
 
-                BitmapIterator itb0 = itb1.find0();
+                if (itb0.index() <= itb1.index()) {
+                    itb0 = itb1.find0();
+                }
                 if (itb0 == null) {
                     answer.addMany(true, left.size() - answer.size());
                     break;
@@ -254,12 +268,18 @@ public class LTLBitmap {
         BitmapAdapter answer = createAdapter(type);
 
         int pos = 0;
+        BitmapIterator ita1 = ita, ita0 = ita;
+        BitmapIterator itb1 = itb, itb0 = itb;
         while (!ita.isEnd() && !itb.isEnd()) {
-            BitmapIterator ita1 = ita.find1();
+            if (ita1.index() <= ita.index()) {
+                ita1 = ita.find1();
+            }
             if (ita1 == null) {
                 ita = null;
             }
-            BitmapIterator itb1 = itb.find1();
+            if (itb1.index() <= itb.index()) {
+                itb1 = itb.find1();
+            }
             if (itb1 == null) {
                 itb = null;
             }
@@ -286,7 +306,9 @@ public class LTLBitmap {
             }
 
             if (itb1.index() == pos) {
-                BitmapIterator itb0 = itb1.find0();
+                if (itb0.index() <= itb1.index()) {
+                    itb0 = itb1.find0();
+                }
                 if (itb0 == null) {
                     itb0 = right.end();
                 }
@@ -299,7 +321,9 @@ public class LTLBitmap {
                 continue;
             }
 
-            BitmapIterator ita0 = ita1.find0();
+            if (ita0.index() <= ita1.index()) {
+                ita0 = ita1.find0();
+            }
             if (ita0 == null) {
                 ita0 = left.end();
             }
@@ -334,7 +358,9 @@ public class LTLBitmap {
         } else if (ita == null) {
             pos = itb.index();
             while (!itb.isEnd()) {
-                BitmapIterator itb1 = itb.find1();
+                if (itb1.index() <= itb.index()) {
+                    itb1 = itb.find1();
+                }
                 if (itb1 == null) {
                     answer.addMany(false, left.size() - answer.size());
                     break;
@@ -347,7 +373,9 @@ public class LTLBitmap {
                     continue;
                 }
 
-                BitmapIterator itb0 = itb1.find0();
+                if (itb0.index() <= itb1.index()) {
+                    itb0 = itb1.find0();
+                }
                 if (itb0 == null) {
                     answer.addMany(true, left.size() - answer.size());
                     break;
@@ -383,10 +411,15 @@ public class LTLBitmap {
         BitmapAdapter answer = createAdapter(type);
 
         int pos = 0;
+        BitmapIterator ita1 = ita, ita0 = ita;
+        BitmapIterator itb1 = itb, itb0 = itb;
+
         while (!ita.isEnd() && !itb.isEnd()) {
             int off;
 
-            BitmapIterator itb1 = itb.find1();
+            if (itb1.index() <= itb.index()) {
+                itb1 = itb.find1();
+            }
             if (itb1 == null) {
                 itb = null;
                 break;
@@ -401,13 +434,17 @@ public class LTLBitmap {
                 continue;
             }
 
-            BitmapIterator ita1 = ita.find1();
+            if (ita1.index() <= ita.index()) {
+                ita1 = ita.find1();
+            }
             if (ita1 == null) {
                 ita = null;
                 break;
             }
 
-            BitmapIterator itb0 = itb1.find0();
+            if (itb0.index() <= itb1.index()) {
+                itb0 = itb1.find0();
+            }
             if (itb0 == null) {
                 itb0 = right.end();
             }
@@ -421,7 +458,9 @@ public class LTLBitmap {
                 continue;
             }
 
-            BitmapIterator ita0 = ita1.find0();
+            if (ita0.index() <= ita1.index()) {
+                ita0 = ita1.find0();
+            }
             if (ita0 == null) {
                 ita0 = left.end();
             }
