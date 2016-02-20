@@ -39,11 +39,15 @@ public class ConciseBitmapTest {
             boolean b = ThreadLocalRandom.current().nextBoolean();
             boolean c = ThreadLocalRandom.current().nextBoolean();
             if (b) {
-                raw.addMany(c, 31);
-                bm.addMany(c, 31);
+                raw.addMany(c, 63);
+                bm.addMany(c, 63);
             } else {
                 raw.add(c);
                 bm.add(c);
+            }
+            if (raw.last0() != bm.last0()) {
+                System.out.println(raw.toString());
+                System.out.println(bm.toString());
             }
             assertEquals("" + i, raw.last0(), bm.last0());
         }

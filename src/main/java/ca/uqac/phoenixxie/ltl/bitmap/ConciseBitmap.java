@@ -36,9 +36,7 @@ public class ConciseBitmap implements LTLBitmap.BitmapAdapter {
         }
 
         if (bit) {
-            for (int i = size; i < size + count; ++i) {
-                bitmap.add(i);
-            }
+            bitmap.addMany(size, count);
         }
         size += count;
     }

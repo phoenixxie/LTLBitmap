@@ -57,6 +57,6 @@ public class Mean {
         }
         System.out.println();
 
-        System.out.println(RunAll.Stat.csvToLatex(sb.toString()));
+//        System.out.println(RunAll.Stat.csvToLatex(sb.toString()));
     }
 }
